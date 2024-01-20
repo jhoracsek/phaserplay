@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <script type="text/javascript">
+
+    var socket = io();
+    var tempx = 0;
+    var tempy = 0;
+    var playerColor = null;
+
+    var initialized = false;
+
+    const playerColours = ['0xFF0000', '0x00FF00', '0x0000FF', '0xF0F0F0'];
+
+    var board = new Array(16);//.fill('0xAA00AA').map(() => new Array(16).fill('0xAA00AA'));
+    for (let i = 0; i < 16; i++){
+        board[i] = new Array(16);
+    }
+    for(let i = 0; i < 16; i++){
+        for(let j = 0; j < 16; j++){
+            board[i][j] = '0x111111';
+        }
+    }
+
+    socket.emit('init');
+
+    socket.on('init', (num)=> {
+        if(initialized == false){
+            playerColor = playerColours[num-1];
+            initialized = true;
+        }
+    });
+
+    class Pixel {
+        constructor(posX, posY, size, x, y){
+            this.x = x;
+            this.y = y;
+            this.posX = posX;
+            this.posY = posY;
+            this.size = size;
+            this.pix = null;
+        }
+
+        update(posX, posY, size, x, y){
+            this.x = x;
+            this.y = y;
+            this.posX = posX;
+            this.posY = posY;
+            this.size = size;
+        }
+
+        create(graphics, scene){
+            /*
+            let pixel = new Phaser.Geom.Rectangle(this.posX, this.posY, this.size, this.size);
+            var pix = scene.add.graphics({fillStyle: {color:getRandomColor() }});
+            
+            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
+            pix.on('pointerdown', function (pointer)
+            {
+                console.log("poop");
+                pixel.setFillStyle(0x000000, 1);
+
+            });
+
+            pix.setDepth(-1);
+            pix.fillRectShape(pixel);
+            */
+            
+            //const pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, getRandomColor());
+
+            var pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, board[this.x][this.y]);
+
+            this.pix = pix;
+            
+            pix.setDepth(-1);
+            pix.setInteractive()
+            pix.on('pointerdown', function (pointer)
+            {
+                //pix.setFillStyle('0x000000');
+                console.log(playerColor);
+                pix.setFillStyle(playerColor);
+                //console.log(board[this.x][this.y]);
+                //console.log((this.x-158)/36, (this.y-118)/36 );
+                //This is fucking ugly
+                board[(this.x-158)/36][(this.y-118)/36] = playerColor;
+                socket.emit('board update', board);
+
+            });
+
+
+        }
+
+        updateColor(color){
+            if(this.pix != null){
+                this.pix.setFillStyle(color);
+            }
+        }
+
+        test(){
+            console.log("poop");
+        }
+
+        //This is probably where the colour changes
+        //update(){
+
+        //}
+    }
+
+
+    var pixStore = new Array(16);
+    for (let i = 0; i < 16; i++){
+        pixStore[i] = new Array(16);
+    }
+
+
+    for(let i = 0; i < 16; i++){
+        for(let j = 0; j < 16; j++){
+            const pixel = new Pixel(0,0,0,0,0);
+            pixStore[i][j] = pixel;
+        }
+    }
+
+    socket.on("board update", (brd) => {
+
+        board = brd;
+
+        for(let i = 0; i < 16; i++){
+            for(let j = 0; j < 16; j++){
+                board[i][j] = brd[i][j];
+            }
+        }
+
+        for(let i = 0; i < 16; i++){
+            for(let j = 0; j < 16; j++){
+                pixStore[i][j].updateColor(board[i][j]);
+                //pixStore[i][j].pix.setFillStyle(board[i][j]);
+            }
+        }
+    });
+
+
+
+    function getRandomColor() {
+      var letters = '0123456789ABCDEF';
+      var color = '0x';
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    
+
+    class Grid {
+        constructor(posX, posY, players){
+            this.posX = posX;
+            this.posY = posY;
+            this.players = players;
+            this.size = 96*6;
+
+            // 2 player should be 16x16
+            // 3 player should be 24x24
+            // 4 player should be 32x32
+            this.gridPixelSize = 0;
+            switch(players){
+                case 2:
+                    this.gridPixelSize = 16;
+                    break;
+                case 3:
+                    this.gridPixelSize = 24;
+                    break;
+                default:
+                    this.gridPixelSize = 32;
+            }
+            this.lineSep = this.size/this.gridPixelSize;
+
+            this.lineWidth = 0.25;
+
+        }
+
+        create(graphics, scene){
+            var x = 0;
+            var y = 0;
+            for(let i = 0; i < this.size; i+= this.lineSep){
+                for(let j = 0; j < this.size; j+= this.lineSep){
+                    //const pixel = new Pixel(this.posX+i,this.posY+j,this.lineSep, x, y);
+                    pixStore[x][y].update(this.posX+i,this.posY+j,this.lineSep, x, y);
+                    //pixel.create(graphics,scene);
+                    pixStore[x][y].create(graphics, scene);
+                    //pixStore[x][y] = pixel;
+                    y+=1;
+                }
+                x+=1;
+                y=0;
+            }
+            
+            graphics.lineStyle(this.lineWidth,0xFFF000,2);
+            for(let i = this.lineSep; i < this.size; i+=this.lineSep){
+                graphics.lineBetween(this.posX, this.posY + i, this.posX+this.size, this.posY+i);
+            }
+            for(let i = this.lineSep; i < this.size; i+=this.lineSep){
+                graphics.lineBetween(this.posX+i, this.posY, this.posX+i, this.posY+this.size);
+            }
+
+            graphics.strokeRect(this.posX,this.posY,this.size,this.size);
+
+
+            //const pixel = new Pixel(12,12,this.lineSep);
+            //pixel.create(graphics);
+        }
+
+        //Should update pixels
+        update(){
+            //Pixels should be in some sort of data structure to update them (Just a 2d array is fine.)
+        }
+
+
+    }
+
+    class Menu extends Phaser.Scene
+    {
+        preload ()
+        {
+            this.load.setBaseURL('https://labs.phaser.io');
+
+            this.load.image('sky', 'assets/skies/space3.png');
+            this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+            this.load.image('red', 'assets/particles/red.png');
+        }
+
+        create ()
+        {
+            const grid = new Grid(312, 150, 2);
+            const graphics = this.add.graphics();
+            grid.create(graphics, this);
+
+            var startL = 900;
+            var startT = 150
+            var endT = 776
+            graphics.strokeRect(10, startT,250,576);
+            graphics.strokeRect(startL, startT,250,576);
+
+            /*
+            let pixel = new Phaser.Geom.Rectangle(0, 0, 200, 200);
+            const pix = this.add.graphics({fillStyle: {color:getRandomColor() }});
+            pix.fillRectShape(pixel);
+            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
+            pix.on('pointerover', () => {console.log("test");});
+
+
+            const helloButton = this.add.text(1000, 100, 'Hello Phaser!', { fill: '#0f0' });
+            helloButton.setInteractive();
+
+            helloButton.on('pointerover', () => { console.log('pointerover'); });
+            */
+
+        }
+
+        update(){
+
+        }
+    }
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 1200,
+        height: 800,
+        backgroundColor: '#562D6E',
+        scene: Menu,
+        
+    };
+
+    var game = new Phaser.Game(config);
+    </script>
+
+</body>
+</html>
