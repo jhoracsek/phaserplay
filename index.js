@@ -10,7 +10,12 @@ const io = new Server(server);
 
 const players = {};
 
+var playerList = [];
+var playerName = [];
+
 var numOfPlayers = 0;
+
+var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy :)", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Trone", "Tyrone"];
 
 //var board = new Array(16).fill('0x000000').map(() => new Array(16).fill('0x000000'));
 var board = new Array(16);
@@ -62,31 +67,41 @@ app.get('/', (req, res)=>{
 });
 
 io.on('connection', (socket) => {
-	console.log('a user connnected');
+	console.log('a user', socket.id,  'connnected');
   numOfPlayers++;
 
-  io.emit("board update", board);
+  playerList.push(socket.id);
+  playerName.push(testNames[Math.floor(Math.random()*testNames.length)]);
 
-  io.emit("init", numOfPlayers);
+  io.emit("board init", board);
 
-  console.log(socket.id);
+  io.emit("init", numOfPlayers, playerList, playerName);
+
+  io.emit("sync players", playerList, playerName)
 	
 	socket.on('disconnect', () => {
       numOfPlayers--;
-    	console.log('user disconnected');
+      let index = playerList.indexOf(socket.id);
+      console.log('player tbr', playerList[index])
+      playerList.splice(index, 1);
+      playerName.splice(index, 1);
+
+      io.emit("remove player", playerList, playerName);
+    	console.log('user', socket.id, 'disconnected');
     	stateChanged = true;
-    	delete players[socket.id]
+    	delete players[socket.id];
   	});
 
-  	socket.on('board update', (brd) => {
-  		
+  	socket.on('board update', (brd, i, j) => {
+  		board[i][j] = brd[i][j];
+      /*
   		for(let i = 0; i < 16; i++){
             for(let j = 0; j < 16; j++){
                 board[i][j] = brd[i][j];
             }
-        }
+        }*/
 
-    	io.emit('board update', board);
+    	io.emit('board update', board, i,j);
   	});
 
     /*

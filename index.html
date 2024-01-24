@@ -3,8 +3,14 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+
+    <title> GAME! </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 <body>
+    <div id="game-container"></div>
+
 
     <script type="text/javascript">
 
@@ -16,6 +22,106 @@
     var initialized = false;
 
     const playerColours = ['0xFF0000', '0x00FF00', '0x0000FF', '0xF0F0F0'];
+    var playerList = [];
+    var playerNames = [];
+
+    var tttt = 1;
+    class PlayerBadges{
+        constructor(posX, posY){
+            this.posX = posX;
+            this.posY = posY;
+
+            this.playerText = null;
+            this.graphics = null;
+            this.scene = null;
+
+            this.playerBoxes = [];
+        }
+
+        preload(){
+            //this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
+        }
+
+        //Just draw all the badges and impose the names on top (and avatars...)
+        create(scene, graphics){
+            //graphics.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
+            this.playerText = scene.add.bitmapText(45, 300, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
+            this.graphics = graphics;
+            this.playerText.setText(playerNames);
+            this.scene = scene;
+            /*
+            for(const box in this.playerBoxes){
+
+                const boxx = this.scene.add.graphics();
+                boxx.fillRectShape(this.playerBoxes[box]);
+            }*/
+        }
+
+        resetBoxes(){
+            while(this.playerBoxes.length > 0)
+                this.removePlayerBox();
+
+            this.playerBoxes = [];
+        }
+
+        addPlayerBox(){
+           
+                let n = this.playerBoxes.length;
+
+                const rect = new Phaser.Geom.Rectangle(31, 170+n*55,250,50,20);
+                //const rect = this.graphics.add.rectangle(31, 170+n*55,250,50,20, 0xff0000);//.setOrigin(0, 0);
+                //const rect =  this.graphics.fillRoundedRect(31, 170+n*55,250,50,20);
+                //const rect =  this.graphics.add(rect1);
+                const boxx = this.scene.add.graphics();
+                boxx.fillGradientStyle(0xCCCCFF, 0xCCCCFF, 0xffffff, 0xffffff, 1);
+                this.playerBoxes.push(boxx.fillRectShape(rect));        
+        }
+
+        removePlayerBox(){
+            var rect = this.playerBoxes.pop();
+            rect.destroy();
+        }
+
+        //Probably don't need to include this in the update
+        update(){
+            /*
+            this.playerText.setText(playerNames);
+            this.graphics.fillStyle('0x341111',1);
+            //ADD A GRADIENT
+            //Carve out an instance for the first and last
+            var rect = new Phaser.Geom.Rectangle(31, 170+tttt,250,100,20);
+
+            for(plr in playerNames){
+
+                //this.graphics.fillRoundedRect(31, 170+tttt,250,100,20);  
+            }
+            tttt++;
+            //OG!!
+            //graphics.fillRoundedRect(31, 170,250,576,20);
+
+
+
+
+            var pix = scene.add.graphics({fillStyle: {color:getRandomColor() }});
+            
+            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
+            pix.on('pointerdown', function (pointer)
+            {
+                console.log("poop");
+                pixel.setFillStyle(0x000000, 1);
+
+            });
+
+            pix.setDepth(-1);
+            pix.fillRectShape(pixel);
+            */
+        }
+
+
+    }
+
+ 
+    var pbs = new PlayerBadges(0,0);
 
     var board = new Array(16);//.fill('0xAA00AA').map(() => new Array(16).fill('0xAA00AA'));
     for (let i = 0; i < 16; i++){
@@ -29,11 +135,59 @@
 
     socket.emit('init');
 
-    socket.on('init', (num)=> {
+    socket.on('init', (num, plrLst, plrNme)=> {
         if(initialized == false){
             playerColor = playerColours[num-1];
             initialized = true;
+            //playerList = [];
+            //for(plr in plrLst){
+            //    playerList.push(plr);
+            //}
         }
+
+
+        //console.log(playerList);
+    });
+
+    socket.on('sync players', (plrList, plrName)=> {
+        playerList = [];
+        for(plr in plrList){
+            playerList.push(plrList[plr]);
+        }
+
+        playerNames = [];
+        for(plr in plrName){
+            playerNames.push(plrName[plr]);
+        }
+        if(pbs.playerText != null){
+            pbs.playerText.setText(playerNames);
+            pbs.resetBoxes();
+            for(box in playerNames){
+                pbs.addPlayerBox();
+            }
+        }
+        
+    });
+
+    socket.on('remove player', (plrList, plrName)=> {
+        playerList = [];
+        for(plr in plrList){
+            playerList.push(plrList[plr]);
+        }
+
+        playerNames = [];
+        for(plr in plrName){
+            playerNames.push(plrName[plr]);
+        }
+        
+        if(pbs.playerText != null){
+            pbs.playerText.setText(playerNames);
+            pbs.resetBoxes();
+            for(box in playerList){
+                pbs.addPlayerBox();
+            }
+        }
+
     });
 
     class Pixel {
@@ -79,17 +233,27 @@
             
             pix.setDepth(-1);
             pix.setInteractive()
-            pix.on('pointerdown', function (pointer)
+            pix.on('pointerdown', (pointer)=>
             {
                 //pix.setFillStyle('0x000000');
                 console.log(playerColor);
                 pix.setFillStyle(playerColor);
                 //console.log(board[this.x][this.y]);
                 //console.log((this.x-158)/36, (this.y-118)/36 );
-                //This is fucking ugly
-                board[(this.x-158)/36][(this.y-118)/36] = playerColor;
-                socket.emit('board update', board);
 
+
+                /*
+                    This is coming to bite me in the ass now because I want to change
+                    the position of the grid. 
+                */
+                //board[(this.x-158)/36][(this.y-118)/36] = playerColor;
+
+                //Why can't I just access class attributes inside this function????
+                //I actually can now because I changed something arbitrary and now it works...
+                board[this.x][this.y] = playerColor;
+                socket.emit('board update', board, this.x, this.y);
+
+                console.log(playerNames)
             });
 
 
@@ -104,11 +268,6 @@
         test(){
             console.log("poop");
         }
-
-        //This is probably where the colour changes
-        //update(){
-
-        //}
     }
 
 
@@ -125,7 +284,7 @@
         }
     }
 
-    socket.on("board update", (brd) => {
+    socket.on("board init", (brd) => {
 
         board = brd;
 
@@ -137,14 +296,20 @@
 
         for(let i = 0; i < 16; i++){
             for(let j = 0; j < 16; j++){
+                //console.log('test');
                 pixStore[i][j].updateColor(board[i][j]);
                 //pixStore[i][j].pix.setFillStyle(board[i][j]);
             }
         }
     });
 
+    socket.on('board update', (brd, i,j)=>{
+        board[i][j] = brd[i][j];
+        pixStore[i][j].updateColor(board[i][j]);
+    });
 
 
+    //From some guy on github I don't remember.
     function getRandomColor() {
       var letters = '0123456789ABCDEF';
       var color = '0x';
@@ -153,7 +318,7 @@
       }
       return color;
     }
-
+    
     
 
     class Grid {
@@ -181,7 +346,11 @@
 
             this.lineWidth = 0.25;
 
+
+
         }
+
+
 
         create(graphics, scene){
             var x = 0;
@@ -209,6 +378,7 @@
 
             graphics.strokeRect(this.posX,this.posY,this.size,this.size);
 
+          
 
             //const pixel = new Pixel(12,12,this.lineSep);
             //pixel.create(graphics);
@@ -217,6 +387,8 @@
         //Should update pixels
         update(){
             //Pixels should be in some sort of data structure to update them (Just a 2d array is fine.)
+
+
         }
 
 
@@ -231,19 +403,48 @@
             this.load.image('sky', 'assets/skies/space3.png');
             this.load.image('logo', 'assets/sprites/phaser3-logo.png');
             this.load.image('red', 'assets/particles/red.png');
+ 
+            this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
+            //this.pbs.preload();
+            
+            
         }
 
         create ()
         {
-            const grid = new Grid(312, 150, 2);
+            var gridPosX = 312;
+            var smallBoxStart = (1200-500-576)/4;
+            const grid = new Grid(gridPosX, 170, 2);
             const graphics = this.add.graphics();
             grid.create(graphics, this);
 
-            var startL = 900;
-            var startT = 150
-            var endT = 776
-            graphics.strokeRect(10, startT,250,576);
-            graphics.strokeRect(startL, startT,250,576);
+            var startL = 3*smallBoxStart + 250 + 576;
+            var startT = 170;
+            var endT = 776;
+
+            pbs.create(this, graphics);
+            //graphics.strokeStyle('0xFFFFFF', 1)
+            graphics.fillStyle('0x111111',1);
+
+            //Left Menu
+            //graphics.fillRoundedRect(smallBoxStart, startT,250,576,20);
+
+
+
+
+            //Player badges should be draw below...
+            //How do I do player
+            
+
+
+
+            //-------------------------------------------------
+            //Right
+            graphics.fillRoundedRect(startL, startT,250,576,20);
+            //Top
+            var topBoxStart = 2*smallBoxStart + 576 + 2*250;
+            graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,20);
+            //graphics.add.bitmapText(400, 300, 'atari', 'po', 20).setOrigin(0.5).setLeftAlign();
 
             /*
             let pixel = new Phaser.Geom.Rectangle(0, 0, 200, 200);
@@ -258,11 +459,20 @@
 
             helloButton.on('pointerover', () => { console.log('pointerover'); });
             */
+            
 
+            //NAME BADGES
+            pbs.resetBoxes();
+            for(const box in playerNames){
+                pbs.addPlayerBox();
+            }
+           
         }
 
         update(){
+            pbs.update();
 
+            //This is where you update the name thing and just get it back.
         }
     }
 
@@ -270,13 +480,27 @@
         type: Phaser.AUTO,
         width: 1200,
         height: 800,
+        parent: 'game-container',
         backgroundColor: '#562D6E',
         scene: Menu,
         
     };
 
     var game = new Phaser.Game(config);
+
+    function setName(){
+        console.log(document.getElementById("pn").value);
+    }
     </script>
+    <div>
+        <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
+        <form action="javascript:setName();" method="get">
+            Name: <input type="text" name="pn" id="pn"><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
 
 </body>
+
+
 </html>
