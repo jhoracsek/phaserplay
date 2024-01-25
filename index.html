@@ -168,9 +168,10 @@
 
     socket.emit('init');
 
-    socket.on('init', (num, plrLst, plrNme)=> {
+    socket.on('init', (num, plrLst, plrNme, clr)=> {
         if(initialized == false){
-            playerColor = playerColours[num-1];
+            //playerColor = playerColours[num-1];
+            playerColor = clr;
             initialized = true;
             //playerList = [];
             //for(plr in plrLst){

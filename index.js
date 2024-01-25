@@ -19,6 +19,15 @@ var numOfPlayers = 0;
 var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy :)", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Trone", "Tyrone"];
 
 //var board = new Array(16).fill('0x000000').map(() => new Array(16).fill('0x000000'));
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '0x';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
 var board = new Array(16);
 for (let i = 0; i < 16; i++){
     board[i] = new Array(16);
@@ -76,7 +85,7 @@ io.on('connection', (socket) => {
 
   io.emit("board init", board);
 
-  io.emit("init", numOfPlayers, playerList, playerName);
+  io.emit("init", numOfPlayers, playerList, playerName, getRandomColor());
 
   io.emit("sync players", playerList, playerName)
 	
