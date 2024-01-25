@@ -81,6 +81,7 @@
         }
 
         resetBoxes(){
+            console.log("TJOS SHPOSDJKAP")
             while(this.playerBoxes.length > 0){
                 this.removePlayerBox();
             }
@@ -90,7 +91,7 @@
         }
 
         addPlayerBox(num){
-           
+            console.log("WHY")
                 let n = this.playerBoxes.length;
 
                 let height = 170+n*55;
@@ -193,8 +194,8 @@
         for(plr in plrName){
             playerNames.push(plrName[plr]);
         }
-        if(pbs.playerText != null){
-            pbs.playerText.setText(playerNames);
+        if(pbs.scene != null){
+            //pbs.playerText.setText(playerNames);
             pbs.resetBoxes();
             for(box in playerNames){
                 pbs.addPlayerBox(box);
@@ -214,8 +215,8 @@
             playerNames.push(plrName[plr]);
         }
         
-        if(pbs.playerText != null){
-            pbs.playerText.setText(playerNames);
+        if(pbs.scene != null){
+            //pbs.playerText.setText(playerNames);
             pbs.resetBoxes();
             for(box in playerList){
                 pbs.addPlayerBox(box);
