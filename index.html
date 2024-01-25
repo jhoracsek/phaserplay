@@ -7,10 +7,24 @@
     <title> GAME! </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <style>
+    .cent {
+      display: flex;
+      justify-content: center;
+      width: 1200px;
+      height: 800px;
+    }
+    body {
+      background-image: url("bg.png");
+      background-repeat: repeat-xy;
+    }
+    </style>
+
 </head>
 <body>
-    <div id="game-container"></div>
-
+    <center>
+        <div id="game-container", class="cent"></div>
+    </center>
 
     <script type="text/javascript">
 
@@ -36,6 +50,7 @@
             this.scene = null;
 
             this.playerBoxes = [];
+            this.playerTexts = [];
         }
 
         preload(){
@@ -45,10 +60,18 @@
         //Just draw all the badges and impose the names on top (and avatars...)
         create(scene, graphics){
             //graphics.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
-            this.playerText = scene.add.bitmapText(45, 300, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
+            //this.playerText = scene.add.bitmapText(45, 200, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
+            //this.playerText = scene.add.bitmapText(400, 200, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
+            //this.playerText.setTint(0xff00ff, 0xffff00, 0x00ff00, 0xff0000);
+            
+            //this.playerText = scene.add.text(50, 100, '', { font: "74px Arial Black", fill: "#fff" });//.setOrigin(0.0).setLeftAlign();
+            
+            //this.playerText.setStroke('0x123456', 15);
             this.graphics = graphics;
-            this.playerText.setText(playerNames);
+            //this.playerText.setText(playerNames);
+            //this.playerText.setDepth(5);
             this.scene = scene;
+
             /*
             for(const box in this.playerBoxes){
 
@@ -58,28 +81,38 @@
         }
 
         resetBoxes(){
-            while(this.playerBoxes.length > 0)
+            while(this.playerBoxes.length > 0){
                 this.removePlayerBox();
+            }
 
             this.playerBoxes = [];
+            this.playerTexts = [];
         }
 
-        addPlayerBox(){
+        addPlayerBox(num){
            
                 let n = this.playerBoxes.length;
 
-                const rect = new Phaser.Geom.Rectangle(31, 170+n*55,250,50,20);
+                let height = 170+n*55;
+
+                let boxHeight = 50;
+                let boxWidth = 250;
+
+                const rect = new Phaser.Geom.Rectangle(31, height,boxWidth,boxHeight,20);
                 //const rect = this.graphics.add.rectangle(31, 170+n*55,250,50,20, 0xff0000);//.setOrigin(0, 0);
                 //const rect =  this.graphics.fillRoundedRect(31, 170+n*55,250,50,20);
                 //const rect =  this.graphics.add(rect1);
                 const boxx = this.scene.add.graphics();
                 boxx.fillGradientStyle(0xCCCCFF, 0xCCCCFF, 0xffffff, 0xffffff, 1);
-                this.playerBoxes.push(boxx.fillRectShape(rect));        
+                this.playerBoxes.push(boxx.fillRectShape(rect));
+                this.playerTexts.push(this.scene.add.text(31+boxWidth/2, height+boxHeight/2, playerNames[num]).setFontFamily('Arial').setFontSize(24).setColor('#ffff00').setOrigin(0.5, 0.5));
         }
 
         removePlayerBox(){
             var rect = this.playerBoxes.pop();
+            var text = this.playerTexts.pop();
             rect.destroy();
+            text.destroy();
         }
 
         //Probably don't need to include this in the update
@@ -163,7 +196,7 @@
             pbs.playerText.setText(playerNames);
             pbs.resetBoxes();
             for(box in playerNames){
-                pbs.addPlayerBox();
+                pbs.addPlayerBox(box);
             }
         }
         
@@ -184,7 +217,7 @@
             pbs.playerText.setText(playerNames);
             pbs.resetBoxes();
             for(box in playerList){
-                pbs.addPlayerBox();
+                pbs.addPlayerBox(box);
             }
         }
 
@@ -231,7 +264,7 @@
 
             this.pix = pix;
             
-            pix.setDepth(-1);
+            pix.setDepth(-4);
             pix.setInteractive()
             pix.on('pointerdown', (pointer)=>
             {
@@ -344,7 +377,7 @@
             }
             this.lineSep = this.size/this.gridPixelSize;
 
-            this.lineWidth = 0.25;
+            this.lineWidth = 1;
 
 
 
@@ -424,7 +457,7 @@
 
             pbs.create(this, graphics);
             //graphics.strokeStyle('0xFFFFFF', 1)
-            graphics.fillStyle('0x111111',1);
+            graphics.fillStyle('0x141414',1);
 
             //Left Menu
             //graphics.fillRoundedRect(smallBoxStart, startT,250,576,20);
@@ -464,7 +497,7 @@
             //NAME BADGES
             pbs.resetBoxes();
             for(const box in playerNames){
-                pbs.addPlayerBox();
+                pbs.addPlayerBox(box);
             }
            
         }
@@ -481,7 +514,15 @@
         width: 1200,
         height: 800,
         parent: 'game-container',
-        backgroundColor: '#562D6E',
+        
+        //This transparent attribute is causing weird issues w/ chrome??? The screen seems to render like 20x too large?? idk why but no one
+        //else seems to have this issue and it seems to be inherent to chrome (other browsers have never done this.) as a side note, there are
+        //also some other odd rendering issues I've seen w/ chrome. Like lines being absent completely (maybe z-value?). IDk maybe it's my hackintosh...
+        //FUCK GOOGLE CHROME PLEASE UNCOMMENT NEXT LINE
+        //transparent: true,
+        //"render.transparent": true,
+        //backgroundColor: '#562D6E',
+        //backgroundColor: (0,0,0,0),
         scene: Menu,
         
     };
@@ -492,6 +533,7 @@
         console.log(document.getElementById("pn").value);
     }
     </script>
+    <center>
     <div>
         <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
         <form action="javascript:setName();" method="get">
@@ -499,7 +541,7 @@
             <input type="submit" value="Submit">
         </form>
     </div>
-
+</center>
 </body>
 
 

@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+app.use(express.static("./"));
 const http = require('http');
 const server = http.createServer(app);
 
