@@ -39,6 +39,8 @@
     var playerList = [];
     var playerNames = [];
 
+    var myName = "";
+
     var tttt = 1;
     class PlayerBadges{
         constructor(posX, posY){
@@ -532,7 +534,8 @@
     var game = new Phaser.Game(config);
 
     function setName(){
-        console.log(document.getElementById("pn").value);
+        //console.log(document.getElementById("pn").value);
+        socket.emit('name change', document.getElementById("pn").value);
     }
     </script>
     <center>

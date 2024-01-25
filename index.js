@@ -88,6 +88,12 @@ io.on('connection', (socket) => {
   io.emit("init", numOfPlayers, playerList, playerName, getRandomColor());
 
   io.emit("sync players", playerList, playerName)
+
+  socket.on("name change", (name)=>{
+      let index = playerList.indexOf(socket.id);
+      playerName[index] = name;
+      io.emit("sync players", playerList, playerName)
+  });
 	
 	socket.on('disconnect', () => {
       numOfPlayers--;
