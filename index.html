@@ -41,7 +41,11 @@
 
     var myName = "";
 
+    var shadowOffset = 5;
+
     var tttt = 1;
+
+    //Not really a great place to put this but this is a great place for colour stuff:https://www.canva.com/colors/color-wheel/
     class PlayerBadges{
         constructor(posX, posY){
             this.posX = posX;
@@ -53,6 +57,8 @@
 
             this.playerBoxes = [];
             this.playerTexts = [];
+
+            this.boxShadows = [];
         }
 
         preload(){
@@ -82,13 +88,7 @@
             }*/
 
 
-            //THANKS BUDDY https://www.html5gamedevs.com/topic/38109-gradient-rectangle-in-phaser-3/
-            var texture = scene.textures.createCanvas('gradient', 16, 256);
-            var context = texture.getContext();
-            var grd = context.createLinearGradient(0, 0, 0, 256);    // ERROR LINE
-
-            grd.addColorStop(0, '#8ED6FF');
-            grd.addColorStop(1, '#004CB3');
+            
         }
 
         resetBoxes(){
@@ -99,6 +99,8 @@
 
             this.playerBoxes = [];
             this.playerTexts = [];
+            this.boxShadows = [];
+
         }
 
         addAllPlayerBoxes(){
@@ -118,7 +120,8 @@
             console.log("WHY")
                 let n = this.playerBoxes.length;
 
-                let height = 170+n*55;
+                //let height = 170+n*55;
+                let height = 170+n*50;
 
                 let boxHeight = 50;
                 let boxWidth = 250;
@@ -164,7 +167,9 @@
                 maskGraphics.fillStyle(0xFFFFFF);
                 maskGraphics.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
 
-                const mask = new Phaser.Display.Masks.BitmapMask(this, maskGraphics);
+                //const mask = new Phaser.Display.Masks.BitmapMask(this, maskGraphics);
+                const mask = new Phaser.Display.Masks.GeometryMask(this, maskGraphics);
+                //mask.setFilter(Phaser.Textures.FilterMode.LINEAR);
 
                 //const mask = this.scene.add.bitmapMask(boxx);
 
@@ -180,21 +185,38 @@
                 //boxx.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot })
 
                 //boxx.fillStyle(0xFF0000,1);
-                boxx.fillGradientStyle(0xCCCCFF, 0xCCCCFF, 0xffffff, 0xffffff, 1);
+                //boxx.fillGradientStyle(0xCCCCFF, 0xCCCCFF, 0xffffff, 0xffffff, 1);
+                //let c1=0x7a56b4;
+                //let c2=0x624295;
+                let c1=0xEFEFEF;
+                //let c2=0xEDEDED;
+                let c2=0xeaeaea;
+                boxx.fillGradientStyle(c1, c1, c2, c2, 1);
                 var toBeMasked = boxx.fillRect(31, height,boxWidth,boxHeight)
                 //mask.invertAlpha=true;
+                mask.dirty = true;
                 toBeMasked.setMask(mask);
                 this.playerBoxes.push(toBeMasked);
                 //gg.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
 
-                this.playerTexts.push(this.scene.add.text(31+boxWidth/2, height+boxHeight/2, playerNames[num]).setFontFamily('Arial').setFontSize(24).setColor('#ffff00').setOrigin(0.5, 0.5));
+                this.playerTexts.push(this.scene.add.text(31+boxWidth/2, height+boxHeight/2, playerNames[num]).setFontFamily('Arial').setFontSize(14).setColor('#6b4ea2').setOrigin(0.5, 0.5));
+                boxx.fillStyle(0x000000,1);
+
+                const shadowGraphic = this.scene.add.graphics();
+                shadowGraphic.setDepth(-2);
+                shadowGraphic.fillStyle(0x000000,0.17);
+                
+                this.boxShadows.push(shadowGraphic.fillRoundedRect(31+shadowOffset, height+shadowOffset,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot }));
+
         }
 
         removePlayerBox(){
             var rect = this.playerBoxes.pop();
             var text = this.playerTexts.pop();
+            var shad = this.boxShadows.pop();
             rect.destroy();
             text.destroy();
+            shad.destroy();
         }
 
         //Probably don't need to include this in the update
@@ -485,8 +507,8 @@
                 x+=1;
                 y=0;
             }
-            
-            graphics.lineStyle(this.lineWidth,0xFFF000,2);
+            //85a24e           OLD:0xFFF000
+            graphics.lineStyle(this.lineWidth,0x85a24e,2);
             for(let i = this.lineSep; i < this.size; i+=this.lineSep){
                 graphics.lineBetween(this.posX, this.posY + i, this.posX+this.size, this.posY+i);
             }
@@ -537,8 +559,11 @@
         {
             var gridPosX = 312;
             var smallBoxStart = (1200-500-576)/4;
+
             const grid = new Grid(gridPosX, 170, 2);
             const graphics = this.add.graphics();
+            const shadows = this.add.graphics();
+
             grid.create(graphics, this);
 
             var startL = 3*smallBoxStart + 250 + 576;
@@ -547,8 +572,9 @@
 
             pbs.create(this, graphics);
             //graphics.strokeStyle('0xFFFFFF', 1)
-            graphics.fillStyle('0x141414',1);
-
+            //graphics.fillStyle('0x141414',1);
+            graphics.fillStyle('0xEEEEEE',1);
+            graphics.setDepth(1);
             //Left Menu
             //graphics.fillRoundedRect(smallBoxStart, startT,250,576,20);
 
@@ -559,14 +585,26 @@
             //How do I do player
             
 
-
+            shadows.fillStyle(0x000000, 0.17);
 
             //-------------------------------------------------
             //Right
-            graphics.fillRoundedRect(startL, startT,250,576,20);
+            graphics.fillRoundedRect(startL, startT,250,576,6);
+            shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,576,6);
+
+
+
             //Top
+
+            graphics.setDepth(4);
             var topBoxStart = 2*smallBoxStart + 576 + 2*250;
-            graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,20);
+            graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,6);
+
+            //SHADOW!!!!!
+            graphics.setDepth(2);
+            
+            shadows.fillRoundedRect(smallBoxStart+shadowOffset, 40+shadowOffset,topBoxStart,100,6);
+            graphics.setDepth(2);
             //graphics.add.bitmapText(400, 300, 'atari', 'po', 20).setOrigin(0.5).setLeftAlign();
 
             /*
@@ -610,10 +648,11 @@
         //else seems to have this issue and it seems to be inherent to chrome (other browsers have never done this.) as a side note, there are
         //also some other odd rendering issues I've seen w/ chrome. Like lines being absent completely (maybe z-value?). IDk maybe it's my hackintosh...
         //FUCK GOOGLE CHROME PLEASE UNCOMMENT NEXT LINE
-        //transparent: true,
+        transparent: true,
         //"render.transparent": true,
         //backgroundColor: '#562D6E',
         //backgroundColor: (0,0,0,0),
+        antialias: true,
         scene: Menu,
         
     };

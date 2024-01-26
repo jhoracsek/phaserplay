@@ -34,6 +34,8 @@ for (let i = 0; i < 16; i++){
 }
 for(let i = 0; i < 16; i++){
     for(let j = 0; j < 16; j++){
+        //THIS IS WHERE WE SET THE BOARD COLOR
+        //Maybe alternate color?
         board[i][j] = '0x111111';
     }
 }
