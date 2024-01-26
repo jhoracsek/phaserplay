@@ -80,10 +80,19 @@
                 const boxx = this.scene.add.graphics();
                 boxx.fillRectShape(this.playerBoxes[box]);
             }*/
+
+
+            //THANKS BUDDY https://www.html5gamedevs.com/topic/38109-gradient-rectangle-in-phaser-3/
+            var texture = scene.textures.createCanvas('gradient', 16, 256);
+            var context = texture.getContext();
+            var grd = context.createLinearGradient(0, 0, 0, 256);    // ERROR LINE
+
+            grd.addColorStop(0, '#8ED6FF');
+            grd.addColorStop(1, '#004CB3');
         }
 
         resetBoxes(){
-            console.log("TJOS SHPOSDJKAP")
+
             while(this.playerBoxes.length > 0){
                 this.removePlayerBox();
             }
@@ -92,7 +101,20 @@
             this.playerTexts = [];
         }
 
-        addPlayerBox(num){
+        addAllPlayerBoxes(){
+            this.resetBoxes();
+            var first = true;
+            var last = false;
+            for(const box in playerNames){
+                if (box == playerNames.length-1){
+                    last = true;
+                }
+                this.addPlayerBox(box, first, last);
+                first = false;
+            }
+        }
+
+        addPlayerBox(num, first, last){
             console.log("WHY")
                 let n = this.playerBoxes.length;
 
@@ -101,13 +123,70 @@
                 let boxHeight = 50;
                 let boxWidth = 250;
 
-                const rect = new Phaser.Geom.Rectangle(31, height,boxWidth,boxHeight,20);
+                
                 //const rect = this.graphics.add.rectangle(31, 170+n*55,250,50,20, 0xff0000);//.setOrigin(0, 0);
                 //const rect =  this.graphics.fillRoundedRect(31, 170+n*55,250,50,20);
                 //const rect =  this.graphics.add(rect1);
                 const boxx = this.scene.add.graphics();
+                
+
+
+                /*
+                const mask = this.scene.add.bitmapMask(boxx);
+                const gradient = this.scene.createLinearGradient(0,0,0,height);
+                gradient.addColorStop(0, 0xFF0000);
+                gradient.addColorStop(1, 0x00FF00);
+
+                const gradientGraphics = this.add.graphics().setMask(mask);
+                //Temp fill colour
+                gradientGraphics.fillStyle(0xffffff);
+                */
+                //Third gradient attempt -_-
+
+                //const mask = this.scene.add.bitmapMask(boxx);
+                //const gg = this.scene.add.graphics().setMask(mask);
+
+                //const grad = mask.createLinearGradient(0,0,0, height);
+
+                //gg.fillStyle(0x00ffff);
+
+                //FOURTH!!!!!
+                // WOW THANK YOUhttps://labs.phaser.io/edit.html?src=src/display/masks/graphics%20bitmap%20mask.js&v=3.70.0 GREAT JOB!
+                var top = 0;
+                var bot = 0;
+                if(first==true){
+                    top = 5;
+                }
+                if(last==true){
+                    bot = 5;
+                }
+                const maskGraphics = this.scene.make.graphics();
+                maskGraphics.fillStyle(0xFFFFFF);
+                maskGraphics.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
+
+                const mask = new Phaser.Display.Masks.BitmapMask(this, maskGraphics);
+
+                //const mask = this.scene.add.bitmapMask(boxx);
+
+
+
+                
+                //First should be rounded at thee topleft and topright
+                //last should be rounded at the bottom left/right
+                //const rect = new Phaser.Geom.Rectangle(31, height,boxWidth,boxHeight,20);
+                //this.playerBoxes.push(boxx.fillRectShape(rect));
+                
+                //THis thingy will be the mask... 
+                //boxx.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot })
+
+                //boxx.fillStyle(0xFF0000,1);
                 boxx.fillGradientStyle(0xCCCCFF, 0xCCCCFF, 0xffffff, 0xffffff, 1);
-                this.playerBoxes.push(boxx.fillRectShape(rect));
+                var toBeMasked = boxx.fillRect(31, height,boxWidth,boxHeight)
+                //mask.invertAlpha=true;
+                toBeMasked.setMask(mask);
+                this.playerBoxes.push(toBeMasked);
+                //gg.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
+
                 this.playerTexts.push(this.scene.add.text(31+boxWidth/2, height+boxHeight/2, playerNames[num]).setFontFamily('Arial').setFontSize(24).setColor('#ffff00').setOrigin(0.5, 0.5));
         }
 
@@ -198,10 +277,11 @@
         }
         if(pbs.scene != null){
             //pbs.playerText.setText(playerNames);
-            pbs.resetBoxes();
-            for(box in playerNames){
-                pbs.addPlayerBox(box);
-            }
+            pbs.addAllPlayerBoxes();
+            //pbs.resetBoxes();
+            //for(box in playerNames){
+            //    pbs.addPlayerBox(box);
+            //}
         }
         
     });
@@ -219,10 +299,11 @@
         
         if(pbs.scene != null){
             //pbs.playerText.setText(playerNames);
-            pbs.resetBoxes();
-            for(box in playerList){
-                pbs.addPlayerBox(box);
-            }
+            pbs.addAllPlayerBoxes();
+            //pbs.resetBoxes();
+            //for(box in playerList){
+            //    pbs.addPlayerBox(box);
+            //}
         }
 
     });
@@ -443,6 +524,11 @@
  
             this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
             //this.pbs.preload();
+
+
+
+
+
             
             
         }
@@ -499,10 +585,11 @@
             
 
             //NAME BADGES
-            pbs.resetBoxes();
-            for(const box in playerNames){
-                pbs.addPlayerBox(box);
-            }
+            pbs.addAllPlayerBoxes();
+            //pbs.resetBoxes();
+            //for(const box in playerNames){
+            //    pbs.addPlayerBox(box);
+            //}
            
         }
 
