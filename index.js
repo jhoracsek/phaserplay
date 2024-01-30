@@ -32,13 +32,22 @@ var board = new Array(16);
 for (let i = 0; i < 16; i++){
     board[i] = new Array(16);
 }
-for(let i = 0; i < 16; i++){
+
+function setBoardColor(){
+  for(let i = 0; i < 16; i++){
     for(let j = 0; j < 16; j++){
         //THIS IS WHERE WE SET THE BOARD COLOR
         //Maybe alternate color?
-        board[i][j] = '0x111111';
-    }
+        if((i+j)%2 == 0) {
+          board[i][j] = '0xEFEFEF';
+        }else{
+          board[i][j] = '0xFFFFFF';
+        }
+
+      }
+  }
 }
+setBoardColor();
 
 var data = "poopy butt hole";
 
@@ -97,6 +106,17 @@ io.on('connection', (socket) => {
       io.emit("sync players", playerList, playerName)
   });
 	
+  socket.on("reset", ()=>{
+    setBoardColor()
+    io.emit("board reset", board)
+  });
+
+  socket.on("sendmsg", (msg)=>{
+    let index = playerList.indexOf(socket.id);
+    
+    io.emit("recmsg", playerName[index]+ ": " + msg);
+  });
+
 	socket.on('disconnect', () => {
       numOfPlayers--;
       let index = playerList.indexOf(socket.id);

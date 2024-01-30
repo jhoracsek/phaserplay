@@ -1,0 +1,12 @@
+Next work on chat.. ()
+Maybe seperate the right bar into a top and bottom? ()
+Flesh out game concept ()
+Logo (USer inspiration picture) ()
+Add some animations for life ()
+Splash page ()
+
+Obviously the idea is for this to become a rough template for other io games()
+
+
+Notes:
+	Lighter pastel colours look nicer with the grid lines
