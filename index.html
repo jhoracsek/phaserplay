@@ -8,16 +8,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
+
     .chatWindow{
         position: absolute;
         background: lightgray;
         width: 250px;
         height: 200px;
         left: 919px;
-        top: 400px;
+        top: 500px;
         text-align: left;
+        overflow: hidden;
+        -webkit-hyphens: auto;
+        -moz-hyphens: auto;
+        -ms-hyphens: auto;
+        hyphens: auto;
+        word-wrap: break-word;
+        border-radius: 6px;
     }
 
+    .chatContent{
+        
+        width: 243px;
+        height: 200px;
+        overflow-y:auto;
+
+        padding-left: 7px;
+    }
     .chatInput{
         position: absolute;
         /*background: lightgray;*/
@@ -62,12 +78,13 @@
                     <input class="inputText" type="text" name="msg" id="msg" placeholder="Send message"><br>
                 </form>
             </div>
-            <div class= "chatWindow" id="cw"></div>
+            <div class= "chatWindow" id="cw"><div class="chatContent" id = "cww"></div></div>
         </div>
         
     </center>
-
+    <script type="text/javascript" src="helpees.js"></script>
     <script type="text/javascript">
+
 
     var socket = io();
     var tempx = 0;
@@ -85,6 +102,9 @@
     var shadowOffset = 5;
 
     var tttt = 1;
+
+    //AHhhh just some stuff
+    const msgWin = document.getElementById('cww');
 
     //Not really a great place to put this but this is a great place for colour stuff:https://www.canva.com/colors/color-wheel/
     class PlayerBadges{
@@ -361,10 +381,31 @@
         
     });
 
-    socket.on('recmsg', (msg) => {
-        const element = document.getElementById("cw");
+    socket.on('recmsg', (clr, name, msg) => {
+        const element = document.getElementById("cww");
         let old = element.innerHTML;
-        element.innerHTML = old + "<br>" + msg;
+        console.log(old)
+        if (old == ""){
+
+            element.innerHTML = "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
+        }else{
+            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;
+        }
+        console.log(msgWin.scrollHeight);
+        msgWin.scrollTop = msgWin.scrollHeight;
+
+    });
+
+    socket.on('reclog', (clr, name, msg) => {
+        const element = document.getElementById("cww");
+        let old = element.innerHTML;
+        if (old == ""){
+            element.innerHTML = "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
+        }else{
+            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;
+        }
+        window.scrollTo(0, document.body.scrollHeight);
+
     });
 
     socket.on('remove player', (plrList, plrName)=> {
@@ -773,7 +814,8 @@
 
     function sendMessage(){
         //console.log(document.getElementById("pn").value);
-        socket.emit('sendmsg', document.getElementById("msg").value);
+        socket.emit('sendmsg', document.getElementById("msg").value, playerColor);
+        document.getElementById("msg").value="";
     }
 
     function resetBoard(){

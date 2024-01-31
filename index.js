@@ -16,7 +16,7 @@ var playerName = [];
 
 var numOfPlayers = 0;
 
-var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy :)", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Trone", "Tyrone"];
+var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
 
 //var board = new Array(16).fill('0x000000').map(() => new Array(16).fill('0x000000'));
 function getRandomColor() {
@@ -111,10 +111,10 @@ io.on('connection', (socket) => {
     io.emit("board reset", board)
   });
 
-  socket.on("sendmsg", (msg)=>{
+  socket.on("sendmsg", (msg, clr)=>{
     let index = playerList.indexOf(socket.id);
     
-    io.emit("recmsg", playerName[index]+ ": " + msg);
+    io.emit("recmsg", clr, playerName[index], msg);
   });
 
 	socket.on('disconnect', () => {
@@ -142,46 +142,8 @@ io.on('connection', (socket) => {
     	io.emit('board update', board, i,j);
   	});
 
-    /*
-  	socket.on("initialize", function(data) {
-	    stateChanged = true;
-	    var id = socket.id;
-
-	    var newPlayer = createPlayer(id, data.color);
-	    players[id] = newPlayer;
-
-	    //On first player joined, start update emit loop
-	    if (numPlayers() === 1 && !isEmittingUpdates) {
-	      emitStateUpdateLoop();
-	    }
-  });*/
 });
 
 server.listen(3000, () =>{
 	console.log('listening on *:3000');
 });
-
-//==========
-
-/*
-io.sockets.on("connection", function(socket) {
-  socket.on("disconnect", function() {
-    // Remove player from state on disconnect
-    stateChanged = true;
-    delete players[socket.id];
-  });
-
-  socket.on("positionUpdate", function(positionData) {
-    stateChanged = true;
-    let player = players[socket.id];
-    player.position = positionData;
-  });
-
-  
-});
-
-console.log("Server started.");
-server.listen(3000);
-
-
-*/
