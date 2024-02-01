@@ -92,13 +92,17 @@ io.on('connection', (socket) => {
   numOfPlayers++;
 
   playerList.push(socket.id);
-  playerName.push(testNames[Math.floor(Math.random()*testNames.length)]);
+
+  var tempName = testNames[Math.floor(Math.random()*testNames.length)];
+  playerName.push(tempName);
 
   io.emit("board init", board);
 
   io.emit("init", numOfPlayers, playerList, playerName, getRandomColor());
 
-  io.emit("sync players", playerList, playerName)
+  io.emit("sync players", playerList, playerName);
+
+  io.emit("reclog", '0xffbf36', tempName + " connected!");
 
   socket.on("name change", (name)=>{
       let index = playerList.indexOf(socket.id);
@@ -120,10 +124,10 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => {
       numOfPlayers--;
       let index = playerList.indexOf(socket.id);
-      console.log('player tbr', playerList[index])
       playerList.splice(index, 1);
       playerName.splice(index, 1);
 
+      io.emit("reclog", '0xfc5b35', playerName + " disconnected.");
       io.emit("remove player", playerList, playerName);
     	console.log('user', socket.id, 'disconnected');
     	stateChanged = true;

@@ -9,13 +9,17 @@
 
     <style>
 
+    body {
+        font: normal 13px Verdana, Arial, sans-serif;
+    }
+
     .chatWindow{
         position: absolute;
-        background: lightgray;
+        /*background: lightgray;*/
         width: 250px;
-        height: 200px;
+        height: 227px;
         left: 919px;
-        top: 500px;
+        top: 473px;
         text-align: left;
         overflow: hidden;
         -webkit-hyphens: auto;
@@ -29,7 +33,7 @@
     .chatContent{
         
         width: 243px;
-        height: 200px;
+        height: 227px;
         overflow-y:auto;
 
         padding-left: 7px;
@@ -61,6 +65,10 @@
       box-sizing: border-box;
       outline: none;
   }
+  .small { 
+        display: block; 
+        margin-bottom: 5px; 
+    }
    
     body {
       background-image: url("bg.png");
@@ -384,27 +392,26 @@
     socket.on('recmsg', (clr, name, msg) => {
         const element = document.getElementById("cww");
         let old = element.innerHTML;
-        console.log(old)
         if (old == ""){
 
-            element.innerHTML = "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
+            element.innerHTML = "<span class=\"small\"></span>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
         }else{
             element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;
         }
-        console.log(msgWin.scrollHeight);
         msgWin.scrollTop = msgWin.scrollHeight;
 
     });
 
-    socket.on('reclog', (clr, name, msg) => {
+    socket.on('reclog', (clr, msg) => {
         const element = document.getElementById("cww");
         let old = element.innerHTML;
         if (old == ""){
-            element.innerHTML = "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
+
+            element.innerHTML = "<span class=\"small\"></span>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + msg + "</b> ";    
         }else{
-            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;
+            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + msg + "</b> ";
         }
-        window.scrollTo(0, document.body.scrollHeight);
+        msgWin.scrollTop = msgWin.scrollHeight;
 
     });
 
@@ -683,7 +690,8 @@
             pbs.create(this, graphics);
             //graphics.strokeStyle('0xFFFFFF', 1)
             //graphics.fillStyle('0x141414',1);
-            graphics.fillStyle('0xEEEEEE',1);
+            graphics.fillStyle('0xf7f7f7',1);
+            //graphics.fillStyle('0xEEEEEE',1);
             graphics.setDepth(1);
             //Left Menu
             //graphics.fillRoundedRect(smallBoxStart, startT,250,576,20);
@@ -704,11 +712,20 @@
 
             //-------------------------------------------------
             //Right
-            graphics.fillRoundedRect(startL, startT,250,576,6);
-            shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,576,6);
+
+            //need to split into 2....
+            //graphics.fillRoundedRect(startL, startT,250,576,6);
+            //shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,576,6);
 
 
+            graphics.fillRoundedRect(startL, startT,250,273,6);
+            shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,273,6);
 
+
+            graphics.fillRoundedRect(startL, startT+303,250,273,6);
+            shadows.fillRoundedRect(startL+shadowOffset, startT+303+shadowOffset,250,273,6);
+
+            //-----------------------------------------------
             //Top
 
             graphics.setDepth(4);
