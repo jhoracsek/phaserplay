@@ -4,7 +4,8 @@
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
-    <title> GAME! </title>
+    <title> pikcel - Some Nonsense </title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -64,7 +65,7 @@
       border-radius: 4px;
       box-sizing: border-box;
       outline: none;
-  }
+    }
   .small { 
         display: block; 
         margin-bottom: 5px; 
@@ -73,6 +74,7 @@
     body {
       background-image: url("bg.png");
       background-repeat: repeat-xy;
+      background-position: 0 0;
     }
     </style>
 
@@ -600,7 +602,7 @@
             }
             this.lineSep = this.size/this.gridPixelSize;
 
-            this.lineWidth = 0.5;
+            this.lineWidth = 0.25;
 
 
 
@@ -653,17 +655,28 @@
 
     }
 
+    //https://css-tricks.com/moving-backgrounds/
+    let container = document.querySelector("body");
+    var bgX = 0;
+    var bgY = 0;
     class Menu extends Phaser.Scene
     {
         preload ()
         {
-            this.load.setBaseURL('https://labs.phaser.io');
 
-            this.load.image('sky', 'assets/skies/space3.png');
-            this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-            this.load.image('red', 'assets/particles/red.png');
+            this.load.image('logo', './logo6.png');
+
+            //this.load.setBaseURL('https://labs.phaser.io');
+
+            //I CAN REMOVE THIS STUFF.
+            // Honestly, maybe you should read the room?
+            //this.load.image('sky', 'assets/skies/space3.png');
+            //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+            //this.load.image('red', 'assets/particles/red.png');
  
-            this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
+            //this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
+
+            
             //this.pbs.preload();
 
 
@@ -674,6 +687,15 @@
 
         create ()
         {
+            //LOGO
+            this.logo = this.add.image(100, 50, 'logo');
+            this.logo.setDepth(10);
+            this.logo.setScale(4);
+            this.logo.setOrigin(0.5,0.5);
+            this.logo.x = 600;
+            this.logo.y = 120;
+
+
             var gridPosX = 312;
             var smallBoxStart = (1200-500-576)/4;
 
@@ -730,13 +752,8 @@
 
             graphics.setDepth(4);
             var topBoxStart = 2*smallBoxStart + 576 + 2*250;
-            graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,6);
-
-            //SHADOW!!!!!
-            graphics.setDepth(2);
-            
-            shadows.fillRoundedRect(smallBoxStart+shadowOffset, 40+shadowOffset,topBoxStart,100,6);
-            graphics.setDepth(2);
+            //graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,6);
+            //shadows.fillRoundedRect(smallBoxStart+shadowOffset, 40+shadowOffset,topBoxStart,100,6);
 
 
             //GRID 
@@ -788,12 +805,30 @@
             //for(const box in playerNames){
             //    pbs.addPlayerBox(box);
             //}
+
+
+            this.tweens.add({
+
+            targets: this.logo,
+            duration: 1000,
+            scaleX: 3.75,
+            scaleY: 3.75,
+
+            //Sine.easeInOut
+            ease: 'Phaser.Math.Easing.Linear',
+            repeat: -1,
+            yoyo: true
+
+            });
            
         }
 
         update(){
             pbs.update();
-
+            bgX += 0.5;
+            bgY -= 0.5;
+            container.style.backgroundPositionX = bgX + "px";
+            container.style.backgroundPositionY = bgY + "px";
             //This is where you update the name thing and just get it back.
         }
     }
