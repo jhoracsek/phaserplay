@@ -376,7 +376,10 @@
     });
 
     window.addEventListener('beforeunload', function (event) {
-        // Send a message to the server indicating that the client is disconnecting
+        socket.disconnect();
+    });
+
+    window.addEventListener('unload', function (event) {
         socket.disconnect();
     });
 
