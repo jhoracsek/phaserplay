@@ -1,11 +1,13 @@
 Next work on chat.. ()
 Maybe seperate the right bar into a top and bottom? ()
 Flesh out game concept ()
-Logo (USer inspiration picture) ()
+Logo (User inspiration picture) ()
 Add some animations for life ()
 Splash page ()
 
 Obviously the idea is for this to become a rough template for other io games()
+
+//https://glitch.com/edit/#!/simple-multiplayer-server?path=server.js%3A78%3A0
 
 
 Notes:

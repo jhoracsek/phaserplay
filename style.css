@@ -1,0 +1,61 @@
+body {
+    font: normal 13px Verdana, Arial, sans-serif;
+    background-image: url("images/bg.png");
+    background-repeat: repeat-xy;
+    background-position: 0 0;
+}
+
+.chatWindow{
+    position: absolute;
+    width: 250px;
+    height: 227px;
+    left: 919px;
+    top: 473px;
+    text-align: left;
+    overflow: hidden;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+    word-wrap: break-word;
+    border-radius: 6px;
+}
+
+.chatContent{
+    
+    width: 243px;
+    height: 227px;
+    overflow-y:auto;
+
+    padding-left: 7px;
+}
+.chatInput{
+    position: absolute;
+    width: 250px;
+    left: 918px;
+    top: 700px;
+}
+
+
+.cent {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 1200px;
+  height: 800px;
+}
+
+.inputText{
+   width: 90%;
+  padding: 6px 10px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+}
+.small { 
+    display: block; 
+    margin-bottom: 5px; 
+}

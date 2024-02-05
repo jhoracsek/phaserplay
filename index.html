@@ -5,78 +5,10 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <title> pikcel - Some Nonsense </title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-
-    body {
-        font: normal 13px Verdana, Arial, sans-serif;
-    }
-
-    .chatWindow{
-        position: absolute;
-        /*background: lightgray;*/
-        width: 250px;
-        height: 227px;
-        left: 919px;
-        top: 473px;
-        text-align: left;
-        overflow: hidden;
-        -webkit-hyphens: auto;
-        -moz-hyphens: auto;
-        -ms-hyphens: auto;
-        hyphens: auto;
-        word-wrap: break-word;
-        border-radius: 6px;
-    }
-
-    .chatContent{
-        
-        width: 243px;
-        height: 227px;
-        overflow-y:auto;
-
-        padding-left: 7px;
-    }
-    .chatInput{
-        position: absolute;
-        /*background: lightgray;*/
-        width: 250px;
-        left: 918px;
-        top: 700px;
-    }
-
-
-    .cent {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      width: 1200px;
-      height: 800px;
-    }
-
-    .inputText{
-       width: 90%;
-      padding: 6px 10px;
-      margin: 8px 0;
-      display: inline-block;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      outline: none;
-    }
-  .small { 
-        display: block; 
-        margin-bottom: 5px; 
-    }
-   
-    body {
-      background-image: url("bg.png");
-      background-repeat: repeat-xy;
-      background-position: 0 0;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 
 </head>
 <body>
@@ -500,7 +432,7 @@
                 //Why can't I just access class attributes inside this function????
                 //I actually can now because I changed something arbitrary and now it works...
                 board[this.x][this.y] = playerColor;
-                socket.emit('board update', board, this.x, this.y);
+                socket.emit('board update', playerColor, this.x, this.y);
 
                 console.log(playerNames)
             });
@@ -552,8 +484,8 @@
         }
     });
 
-    socket.on('board update', (brd, i,j)=>{
-        board[i][j] = brd[i][j];
+    socket.on('board update', (cell, i,j)=>{
+        board[i][j] = cell;
         pixStore[i][j].updateColor(board[i][j]);
     });
 
@@ -663,31 +595,11 @@
     {
         preload ()
         {
-
-            this.load.image('logo', './logo6.png');
-
-            //this.load.setBaseURL('https://labs.phaser.io');
-
-            //I CAN REMOVE THIS STUFF.
-            // Honestly, maybe you should read the room?
-            //this.load.image('sky', 'assets/skies/space3.png');
-            //this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-            //this.load.image('red', 'assets/particles/red.png');
- 
-            //this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
-
-            
-            //this.pbs.preload();
-
-
-
-            
-            
+            this.load.image('logo', 'images/logo.png');            
         }
 
         create ()
         {
-            //LOGO
             this.logo = this.add.image(100, 50, 'logo');
             this.logo.setDepth(10);
             this.logo.setScale(4);

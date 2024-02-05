@@ -7,10 +7,6 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-//https://glitch.com/edit/#!/simple-multiplayer-server?path=server.js%3A78%3A0
-
-const players = {};
-
 var playerList = [];
 var playerName = [];
 
@@ -18,7 +14,8 @@ var numOfPlayers = 0;
 
 var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
 
-//var board = new Array(16).fill('0x000000').map(() => new Array(16).fill('0x000000'));
+// HELPER FUNCTIONS =================================================
+
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
   var color = '0x';
@@ -26,11 +23,6 @@ function getRandomColor() {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
-}
-
-var board = new Array(16);
-for (let i = 0; i < 16; i++){
-    board[i] = new Array(16);
 }
 
 function setBoardColor(){
@@ -47,47 +39,29 @@ function setBoardColor(){
       }
   }
 }
+
+//===================================================================
+
+
+// BOARD INIT =======================================================
+
+var board = new Array(16);
+for (let i = 0; i < 16; i++){
+    board[i] = new Array(16);
+}
 setBoardColor();
 
-var data = "poopy butt hole";
-
-const createPlayer = (id, color) => ({
-  id,
-  color,
-});
-
-function numPlayers() {
-  return Object.keys(players).length;
-}
-
-// Tracking variables for the update loop
-let stateChanged = false;
-let isEmittingUpdates = false;
-const stateUpdateInterval = 300;
-
-
-function emitStateUpdateLoop() {
-  isEmittingUpdates = true;
-  // Reduce usage by only send state update if state has changed
-  if (stateChanged) {
-    stateChanged = false;
-    io.emit("stateUpdate", players);
-  }
-
-  if (numPlayers() > 0) {
-    setTimeout(emitStateUpdateLoop, stateUpdateInterval);
-  } else {
-    // Stop the setTimeout loop if there are no players left
-    isEmittingUpdates = false;
-  }
-}
-
+//===================================================================
 
 app.get('/', (req, res)=>{
 	res.sendFile(__dirname + '/index.html');
 });
 
+
+
 io.on('connection', (socket) => {
+
+  // ON PLAYER CONNECT =================================================
 	console.log('a user', socket.id,  'connnected');
   numOfPlayers++;
 
@@ -104,6 +78,8 @@ io.on('connection', (socket) => {
 
   io.emit("reclog", '0xffbf36', tempName + " connected!");
 
+  //===================================================================
+
   socket.on("name change", (name)=>{
       let index = playerList.indexOf(socket.id);
       playerName[index] = name;
@@ -111,17 +87,24 @@ io.on('connection', (socket) => {
   });
 	
   socket.on("reset", ()=>{
-    setBoardColor()
-    io.emit("board reset", board)
+    setBoardColor();
+    io.emit("board reset", board);
   });
 
   socket.on("sendmsg", (msg, clr)=>{
     let index = playerList.indexOf(socket.id);
-    
     io.emit("recmsg", clr, playerName[index], msg);
   });
 
+  socket.on('board update', (cell, i, j) => {
+      board[i][j] = cell;
+      io.emit('board update', cell, i,j);
+  });
+
+
+  // ON PLAYER DISCONNECT =================================================
 	socket.on('disconnect', () => {
+      console.log("test");
       numOfPlayers--;
       let index = playerList.indexOf(socket.id);
       playerList.splice(index, 1);
@@ -130,23 +113,14 @@ io.on('connection', (socket) => {
       io.emit("reclog", '0xfc5b35', playerName + " disconnected.");
       io.emit("remove player", playerList, playerName);
     	console.log('user', socket.id, 'disconnected');
-    	stateChanged = true;
-    	delete players[socket.id];
   	});
+  // =======================================================================
 
-  	socket.on('board update', (brd, i, j) => {
-  		board[i][j] = brd[i][j];
-      /*
-  		for(let i = 0; i < 16; i++){
-            for(let j = 0; j < 16; j++){
-                board[i][j] = brd[i][j];
-            }
-        }*/
 
-    	io.emit('board update', board, i,j);
-  	});
 
 });
+
+
 
 server.listen(3000, () =>{
 	console.log('listening on *:3000');
