@@ -104,11 +104,12 @@ io.on('connection', (socket) => {
 
   // ON PLAYER DISCONNECT =================================================
 	socket.on('disconnect', () => {
-      console.log("test");
+      socket.emit("disc");
       numOfPlayers--;
       let index = playerList.indexOf(socket.id);
       playerList.splice(index, 1);
       playerName.splice(index, 1);
+
 
       io.emit("reclog", '0xfc5b35', playerName + " disconnected.");
       io.emit("remove player", playerList, playerName);
