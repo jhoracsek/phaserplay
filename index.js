@@ -102,7 +102,9 @@ io.on('connection', (socket) => {
   });
 
 
-  // ON PLAYER DISCONNECT =================================================
+  // PLAYER DISCONNECT =================================================
+  
+
 	socket.on('disconnect', () => {
       socket.emit("disc");
       numOfPlayers--;

@@ -375,6 +375,11 @@
 
     });
 
+    window.addEventListener('beforeunload', function (event) {
+        // Send a message to the server indicating that the client is disconnecting
+        socket.disconnect();
+    });
+
     class Pixel {
         constructor(posX, posY, size, x, y){
             this.x = x;
@@ -421,7 +426,7 @@
             pix.on('pointerdown', (pointer)=>
             {
                 //pix.setFillStyle('0x000000');
-                console.log(playerColor);
+                //console.log(playerColor);
                 pix.setFillStyle(playerColor);
                 //console.log(board[this.x][this.y]);
                 //console.log((this.x-158)/36, (this.y-118)/36 );
@@ -438,7 +443,7 @@
                 board[this.x][this.y] = playerColor;
                 socket.emit('board update', playerColor, this.x, this.y);
 
-                console.log(playerNames)
+                //console.log(playerNames)
             });
 
 
