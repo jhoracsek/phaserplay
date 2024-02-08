@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script> !-->
+    <script src="./phaser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <title> pikcel - Some Nonsense </title>
@@ -15,16 +16,71 @@
     <center>
         
         <div id="game-container", class="cent">
-            <div class="chatInput">
+            <div  class = "splash" id = "splsh">
+                <div class="splashLeft">
+                    <h2>How to play</h2>
+                </div>
+                <div class="splashTopRight">
+                    <h2>Announcements</h2>
+                </div>
+                <div class="splashBottomRight">
+                    <h2>About</h2>
+                </div>
+
+
+
+                <!----------- CONTENTS OF SPLASH PAGE-------------------->
+                <div class="splashWindow"> 
+                   <div class="splashContent">
+                        <h2 style="color:black;">Welcome to PiKCEL.io!</h2>
+                        <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
+                        <form autocomplete="off" action="javascript:setName();" method="get">
+                            <input class="splashInput" type="text" placeholder="What's your name?" name="pn" id="pn"><br>
+                            <hr>
+                            <input class="buttonStyle1" type="submit" value="<!Find a Game">
+                            
+                        </form>
+                        <hr>
+                        <form action="javascript:goToWait();" method="get">
+                            <input class="buttonStyle1" type="submit" value="Create Private Server">
+                        </form>
+                        <!-- OLD <form action="javascript:resetBoard();" method="get">
+                            <input type="submit" value="reset">
+                        </form> -->
+                            <hr>
+                        <form autocomplete="off" action="javascript:chatOn();" method="get">
+                            <input class="splashInput" type="text" placeholder="Server ID" name="pn" id="pn"><br>
+                            <input class="buttonStyle2" type="submit" value="Join Existing Server">
+                        </form>
+
+
+                    </div>
+                    <div style="position:absolute; bottom:4px; right:4px">PiKCEL.io v1.0.0-Pre-alpha</div>
+                </div>
+            </div>
+
+            <!-------------WAITING MENU CONTENT----------------------->
+            <div class="waitingWin" id="waitingWindow" >
+                Server ID: 0000
+                <form action="javascript:dummy();" method="get">
+                    <input class="buttonStyle1" type="submit" value="Start">
+                </form>
+
+            </div>
+
+            <!-------------CHAT CONTENT FOR GAME---------------------->
+            <div class="chatInput" id ="cht">
                 <form autocomplete="off" action="javascript:sendMessage();" method="get">
                     <input class="inputText" type="text" name="msg" id="msg" placeholder="Send message"><br>
                 </form>
             </div>
+            
             <div class= "chatWindow" id="cw"><div class="chatContent" id = "cww"></div></div>
         </div>
         
     </center>
     <script type="text/javascript" src="helpees.js"></script>
+
     <script type="text/javascript">
 
 
@@ -45,10 +101,10 @@
 
     var tttt = 1;
 
-    //AHhhh just some stuff
+    var splash = true;
+
     const msgWin = document.getElementById('cww');
 
-    //Not really a great place to put this but this is a great place for colour stuff:https://www.canva.com/colors/color-wheel/
     class PlayerBadges{
         constructor(posX, posY){
             this.posX = posX;
@@ -64,38 +120,12 @@
             this.boxShadows = [];
         }
 
-        preload(){
-            //this.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
-        }
-
-        //Just draw all the badges and impose the names on top (and avatars...)
         create(scene, graphics){
-            //graphics.load.bitmapFont('atari', 'assets/fonts/bitmap/atari-smooth.png', 'assets/fonts/bitmap/atari-smooth.xml');
-            //this.playerText = scene.add.bitmapText(45, 200, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
-            //this.playerText = scene.add.bitmapText(400, 200, 'atari', '', 20).setOrigin(0.0).setLeftAlign();
-            //this.playerText.setTint(0xff00ff, 0xffff00, 0x00ff00, 0xff0000);
-            
-            //this.playerText = scene.add.text(50, 100, '', { font: "74px Arial Black", fill: "#fff" });//.setOrigin(0.0).setLeftAlign();
-            
-            //this.playerText.setStroke('0x123456', 15);
             this.graphics = graphics;
-            //this.playerText.setText(playerNames);
-            //this.playerText.setDepth(5);
             this.scene = scene;
-
-            /*
-            for(const box in this.playerBoxes){
-
-                const boxx = this.scene.add.graphics();
-                boxx.fillRectShape(this.playerBoxes[box]);
-            }*/
-
-
-            
         }
 
         resetBoxes(){
-
             while(this.playerBoxes.length > 0){
                 this.removePlayerBox();
             }
@@ -103,7 +133,6 @@
             this.playerBoxes = [];
             this.playerTexts = [];
             this.boxShadows = [];
-
         }
 
         addAllPlayerBoxes(){
@@ -120,44 +149,16 @@
         }
 
         addPlayerBox(num, first, last){
-            
                 let n = this.playerBoxes.length;
 
-                //let height = 170+n*55;
                 let height = 170+n*50;
 
                 let boxHeight = 50;
                 let boxWidth = 250;
 
-                
-                //const rect = this.graphics.add.rectangle(31, 170+n*55,250,50,20, 0xff0000);//.setOrigin(0, 0);
-                //const rect =  this.graphics.fillRoundedRect(31, 170+n*55,250,50,20);
-                //const rect =  this.graphics.add(rect1);
                 const boxx = this.scene.add.graphics();
-                
 
-
-                /*
-                const mask = this.scene.add.bitmapMask(boxx);
-                const gradient = this.scene.createLinearGradient(0,0,0,height);
-                gradient.addColorStop(0, 0xFF0000);
-                gradient.addColorStop(1, 0x00FF00);
-
-                const gradientGraphics = this.add.graphics().setMask(mask);
-                //Temp fill colour
-                gradientGraphics.fillStyle(0xffffff);
-                */
-                //Third gradient attempt -_-
-
-                //const mask = this.scene.add.bitmapMask(boxx);
-                //const gg = this.scene.add.graphics().setMask(mask);
-
-                //const grad = mask.createLinearGradient(0,0,0, height);
-
-                //gg.fillStyle(0x00ffff);
-
-                //FOURTH!!!!!
-                // WOW THANK YOUhttps://labs.phaser.io/edit.html?src=src/display/masks/graphics%20bitmap%20mask.js&v=3.70.0 GREAT JOB!
+                //https://labs.phaser.io/edit.html?src=src/display/masks/graphics%20bitmap%20mask.js&v=3.70.0
                 var top = 0;
                 var bot = 0;
                 if(first==true){
@@ -170,49 +171,19 @@
                 maskGraphics.fillStyle(0xFFFFFF);
                 maskGraphics.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
 
-                //const mask = new Phaser.Display.Masks.BitmapMask(this, maskGraphics);
                 const mask = new Phaser.Display.Masks.GeometryMask(this, maskGraphics);
-                //mask.setFilter(Phaser.Textures.FilterMode.LINEAR);
-
-                //const mask = this.scene.add.bitmapMask(boxx);
-
-
-
-                
-                //First should be rounded at thee topleft and topright
-                //last should be rounded at the bottom left/right
-                //const rect = new Phaser.Geom.Rectangle(31, height,boxWidth,boxHeight,20);
-                //this.playerBoxes.push(boxx.fillRectShape(rect));
-                
-                //THis thingy will be the mask... 
-                //boxx.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot })
-
-
 
                 var c1=0xEFEFEF;
                 var c2=0xeaeaea;
 
-                /* Don't really love this...
-                if(num % 2 == 1){
-                    c1 = 0xededed;
-                    c2 = 0xe6e6e6;
-                }
-                */
-
                 boxx.fillGradientStyle(c1, c1, c2, c2, 1);
-                var toBeMasked = boxx.fillRect(31, height,boxWidth,boxHeight)
-                //mask.invertAlpha=true;
+                var toBeMasked = boxx.fillRect(31, height,boxWidth,boxHeight);
                 mask.dirty = true;
                 toBeMasked.setMask(mask);
                 this.playerBoxes.push(toBeMasked);
-                //gg.fillRoundedRect(31, height,boxWidth,boxHeight, { tl: top, tr: top, bl: bot, br: bot });
-                console.log(playerColor)
+                //console.log(playerColor)
                 var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('Arial').setFontSize(17).setColor('#6b4ea2').setOrigin(0.5, 0.5)//.setStroke('#'+playerColor.slice(2, 8), 5);
                 pt.antialias = true;
-
-                //var pt = this.add.text(20, 50, 'Shadow Stroke', { fontFamily: 'Arial Black', fontSize: 74, color: '#c51b7d' });
-                //text1.setStroke('#de77ae', 16);
-
 
                 this.playerTexts.push(pt);
                 boxx.fillStyle(0x000000,1);
@@ -234,39 +205,8 @@
             shad.destroy();
         }
 
-        //Probably don't need to include this in the update
         update(){
-            /*
-            this.playerText.setText(playerNames);
-            this.graphics.fillStyle('0x341111',1);
-            //ADD A GRADIENT
-            //Carve out an instance for the first and last
-            var rect = new Phaser.Geom.Rectangle(31, 170+tttt,250,100,20);
 
-            for(plr in playerNames){
-
-                //this.graphics.fillRoundedRect(31, 170+tttt,250,100,20);  
-            }
-            tttt++;
-            //OG!!
-            //graphics.fillRoundedRect(31, 170,250,576,20);
-
-
-
-
-            var pix = scene.add.graphics({fillStyle: {color:getRandomColor() }});
-            
-            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
-            pix.on('pointerdown', function (pointer)
-            {
-                console.log("poop");
-                pixel.setFillStyle(0x000000, 1);
-
-            });
-
-            pix.setDepth(-1);
-            pix.fillRectShape(pixel);
-            */
         }
 
 
@@ -275,7 +215,7 @@
  
     var pbs = new PlayerBadges(0,0);
 
-    var board = new Array(16);//.fill('0xAA00AA').map(() => new Array(16).fill('0xAA00AA'));
+    var board = new Array(16);
     for (let i = 0; i < 16; i++){
         board[i] = new Array(16);
     }
@@ -289,99 +229,11 @@
 
     socket.on('init', (num, plrLst, plrNme, clr)=> {
         if(initialized == false){
-            //playerColor = playerColours[num-1];
             playerColor = clr;
             initialized = true;
-            //playerList = [];
-            //for(plr in plrLst){
-            //    playerList.push(plr);
-            //}
         }
-
-
-        //console.log(playerList);
     });
 
-    socket.on('sync players', (plrList, plrName)=> {
-        playerList = [];
-        for(plr in plrList){
-            playerList.push(plrList[plr]);
-        }
-
-        playerNames = [];
-        for(plr in plrName){
-            playerNames.push(plrName[plr]);
-        }
-        if(pbs.scene != null){
-            //pbs.playerText.setText(playerNames);
-            pbs.addAllPlayerBoxes();
-            //pbs.resetBoxes();
-            //for(box in playerNames){
-            //    pbs.addPlayerBox(box);
-            //}
-        }
-        
-    });
-
-    socket.on('recmsg', (clr, name, msg) => {
-        const element = document.getElementById("cww");
-        let old = element.innerHTML;
-        if (old == ""){
-
-            element.innerHTML = "<span class=\"small\"></span>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;    
-        }else{
-            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + name + ":</b> " + msg;
-        }
-        msgWin.scrollTop = msgWin.scrollHeight;
-
-    });
-
-    socket.on('reclog', (clr, msg) => {
-        const element = document.getElementById("cww");
-        let old = element.innerHTML;
-        if (old == ""){
-
-            element.innerHTML = "<span class=\"small\"></span>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + msg + "</b> ";    
-        }else{
-            element.innerHTML = old + "<br>" + "<b style=\"color:"+convertColorCode(clr)+";\">" + msg + "</b> ";
-        }
-        msgWin.scrollTop = msgWin.scrollHeight;
-
-    });
-
-    socket.on('disc', ()=>{
-        socket.disconnect();
-    });
-
-    socket.on('remove player', (plrList, plrName)=> {
-        playerList = [];
-        for(plr in plrList){
-            playerList.push(plrList[plr]);
-        }
-
-        playerNames = [];
-        for(plr in plrName){
-            playerNames.push(plrName[plr]);
-        }
-        
-        if(pbs.scene != null){
-            //pbs.playerText.setText(playerNames);
-            pbs.addAllPlayerBoxes();
-            //pbs.resetBoxes();
-            //for(box in playerList){
-            //    pbs.addPlayerBox(box);
-            //}
-        }
-
-    });
-
-    window.addEventListener('beforeunload', function (event) {
-        socket.disconnect();
-    });
-
-    window.addEventListener('unload', function (event) {
-        socket.disconnect();
-    });
 
     class Pixel {
         constructor(posX, posY, size, x, y){
@@ -391,6 +243,8 @@
             this.posY = posY;
             this.size = size;
             this.pix = null;
+            this.virgin = true;
+            this.fx = null;
         }
 
         update(posX, posY, size, x, y){
@@ -402,64 +256,38 @@
         }
 
         create(graphics, scene){
-            /*
-            let pixel = new Phaser.Geom.Rectangle(this.posX, this.posY, this.size, this.size);
-            var pix = scene.add.graphics({fillStyle: {color:getRandomColor() }});
-            
-            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
-            pix.on('pointerdown', function (pointer)
-            {
-                console.log("poop");
-                pixel.setFillStyle(0x000000, 1);
-
-            });
-
-            pix.setDepth(-1);
-            pix.fillRectShape(pixel);
-            */
-            
-            //const pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, getRandomColor());
-
+            this.graphics = graphics;
+            //var pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, board[this.x][this.y]);
             var pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, board[this.x][this.y]);
-
             this.pix = pix;
+
+            this.updateColor(board[this.x][this.y])
             
-            pix.setDepth(-4);
             pix.setInteractive()
             pix.on('pointerdown', (pointer)=>
             {
-                //pix.setFillStyle('0x000000');
-                //console.log(playerColor);
                 pix.setFillStyle(playerColor);
-                //console.log(board[this.x][this.y]);
-                //console.log((this.x-158)/36, (this.y-118)/36 );
-
-
-                /*
-                    This is coming to bite me in the ass now because I want to change
-                    the position of the grid. 
-                */
-                //board[(this.x-158)/36][(this.y-118)/36] = playerColor;
-
-                //Why can't I just access class attributes inside this function????
-                //I actually can now because I changed something arbitrary and now it works...
                 board[this.x][this.y] = playerColor;
                 socket.emit('board update', playerColor, this.x, this.y);
-
-                //console.log(playerNames)
             });
 
 
         }
 
         updateColor(color){
+
             if(this.pix != null){
                 this.pix.setFillStyle(color);
-            }
-        }
 
-        test(){
-            console.log("poop");
+                //If it's a default colour, just draw it above the shine, otherwise just draw it below.
+                if(color == '0xEFEFEF' || color == '0xFFFFFF'){
+                    this.pix.setDepth(3);
+                }else{
+                    
+                    this.pix.setDepth(1);
+                    //this.pix.postFX.addShine(1, .2, 5);
+                }
+            }
         }
     }
 
@@ -468,60 +296,27 @@
     for (let i = 0; i < 16; i++){
         pixStore[i] = new Array(16);
     }
-
-
     for(let i = 0; i < 16; i++){
         for(let j = 0; j < 16; j++){
             const pixel = new Pixel(0,0,0,0,0);
             pixStore[i][j] = pixel;
         }
     }
-
     socket.on("board init", (brd) => {
-
         board = brd;
-
         for(let i = 0; i < 16; i++){
             for(let j = 0; j < 16; j++){
                 board[i][j] = brd[i][j];
             }
         }
-
         for(let i = 0; i < 16; i++){
             for(let j = 0; j < 16; j++){
-                //console.log('test');
+
                 pixStore[i][j].updateColor(board[i][j]);
-                //pixStore[i][j].pix.setFillStyle(board[i][j]);
             }
         }
     });
 
-    socket.on('board update', (cell, i,j)=>{
-        board[i][j] = cell;
-        pixStore[i][j].updateColor(board[i][j]);
-    });
-
-    socket.on('board reset', (brd)=>{
-        for(let i = 0; i < 16; i++){
-            for(let j = 0; j < 16; j++){
-                board[i][j] = brd[i][j];
-                pixStore[i][j].updateColor(board[i][j]);
-              }
-          }
-    });
-
-
-    //From some guy on github I don't remember.
-    function getRandomColor() {
-      var letters = '0123456789ABCDEF';
-      var color = '0x';
-      for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
-    
-    
 
     class Grid {
         constructor(posX, posY, players){
@@ -545,34 +340,30 @@
                     this.gridPixelSize = 32;
             }
             this.lineSep = this.size/this.gridPixelSize;
-
-            this.lineWidth = 0.25;
-
-
-
+            this.lineWidth = 1.0;
         }
-
-
 
         create(graphics, scene){
             var x = 0;
             var y = 0;
+            const pixelGraphics = scene.add.graphics();
+
+
             for(let i = 0; i < this.size; i+= this.lineSep){
                 for(let j = 0; j < this.size; j+= this.lineSep){
-                    //const pixel = new Pixel(this.posX+i,this.posY+j,this.lineSep, x, y);
                     pixStore[x][y].update(this.posX+i,this.posY+j,this.lineSep, x, y);
-                    //pixel.create(graphics,scene);
-                    pixStore[x][y].create(graphics, scene);
-                    //pixStore[x][y] = pixel;
+                    pixStore[x][y].create(pixelGraphics, scene);
                     y+=1;
                 }
                 x+=1;
                 y=0;
             }
+            //const fx = pixelGraphics.postFX.addShine(1, .2, 5);
+            //May not even include these lines
             graphics.setBlendMode(Phaser.BlendModes.NORMAL);
-            //This is a good complementary colour but idk if it fits.
-            //85a24e           OLD:0xFFF000
-
+            // This is a good complementary colour but idk if it fits.
+            // https://www.canva.com/colors/color-wheel/
+            // 85a24e           OLD:0xFFF000
             graphics.lineStyle(this.lineWidth,0x6b4ea2,2,1);
             for(let i = this.lineSep; i < this.size; i+=this.lineSep){
                 graphics.lineBetween(this.posX, this.posY + i, this.posX+this.size, this.posY+i);
@@ -582,17 +373,9 @@
             }
 
             graphics.strokeRect(this.posX,this.posY,this.size,this.size);
-
-          
-
-            //const pixel = new Pixel(12,12,this.lineSep);
-            //pixel.create(graphics);
         }
 
-        //Should update pixels
         update(){
-            //Pixels should be in some sort of data structure to update them (Just a 2d array is fine.)
-
 
         }
 
@@ -603,11 +386,15 @@
     let container = document.querySelector("body");
     var bgX = 0;
     var bgY = 0;
-    class Menu extends Phaser.Scene
+    class Game extends Phaser.Scene
     {
+        constructor(){
+            super('Game');
+        }
         preload ()
         {
-            this.load.image('logo', 'images/logo.png');            
+            this.load.image('logo', 'images/logo.png');
+            this.load.image('shine', 'images/shine.png');
         }
 
         create ()
@@ -634,103 +421,129 @@
             var endT = 776;
 
             pbs.create(this, graphics);
-            //graphics.strokeStyle('0xFFFFFF', 1)
-            //graphics.fillStyle('0x141414',1);
             graphics.fillStyle('0xf7f7f7',1);
-            //graphics.fillStyle('0xEEEEEE',1);
             graphics.setDepth(1);
-            //Left Menu
-            //graphics.fillRoundedRect(smallBoxStart, startT,250,576,20);
-
-
-
-
-            //Player badges should be draw below...
-            //How do I do player
+            
             var divElement = this.add.dom(0, 0, 'div');
             divElement.innerHTML = '<b>This is an embedded HTML element.</b>';
-
-            //const element2 = this.add.dom(500, 200, 'div', 'background: linear-gradient(to bottom, rgba(30,87,153,0) 0%,rgba(30,87,153,0.8) 15%,rgba(30,87,153,1) 19%,rgba(30,87,153,1) 20%,rgba(41,137,216,1) 50%,rgba(30,87,153,1) 80%,rgba(30,87,153,1) 81%,rgba(30,87,153,0.8) 85%,rgba(30,87,153,0) 100%); width: 220px; height: 100px; font: 48px Arial; font-weight: bold; color: white', 'Phaser 3');
-            //element2.innerHTML = 'POOOOP'
-            
 
             shadows.fillStyle(0x000000, 0.17);
 
             //-------------------------------------------------
             //Right
 
-            //need to split into 2....
-            //graphics.fillRoundedRect(startL, startT,250,576,6);
-            //shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,576,6);
-
-
+            
+            //TOP RIGHT====
             graphics.fillRoundedRect(startL, startT,250,273,6);
             shadows.fillRoundedRect(startL+shadowOffset, startT+shadowOffset,250,273,6);
+            //=============
 
-
+            //BOTTOM RIGHT====
             graphics.fillRoundedRect(startL, startT+303,250,273,6);
             shadows.fillRoundedRect(startL+shadowOffset, startT+303+shadowOffset,250,273,6);
+            //================
 
             //-----------------------------------------------
             //Top
 
             graphics.setDepth(4);
             var topBoxStart = 2*smallBoxStart + 576 + 2*250;
-            //graphics.fillRoundedRect(smallBoxStart, 40,topBoxStart,100,6);
-            //shadows.fillRoundedRect(smallBoxStart+shadowOffset, 40+shadowOffset,topBoxStart,100,6);
+            
 
-
-            //GRID 
+            //GRID SHADOW
             shadows.setDepth(-5);
             
-            //This is more of an outline...
-            //shadows.fillStyle(0x85a24e, 0.40);
-            //shadows.fillRoundedRect(gridPosX-shadowOffset, 170-shadowOffset,576+shadowOffset*2,576+shadowOffset*2,6);
-
-
-
-            
-            //divElement.style.position = 'absolute';
-            //divElement.style.top = '0px';
-            //divElement.style.left = '0px';
-
-            // Append the HTML element to the game's DOM container
-            //game.canvas.parentNode.appendChild(divElement);
-
-
-
-            //shadows.fillStyle(0x85a24e, 0.40);
             shadows.fillRect(gridPosX+shadowOffset, 170+shadowOffset,576,576);
 
 
             shadows.fillStyle(0x6b4ea2, 0.5);
             shadows.fillRect(gridPosX-3, 170-3,576+6,576+6,6);
 
-            //graphics.add.bitmapText(400, 300, 'atari', 'po', 20).setOrigin(0.5).setLeftAlign();
 
-            /*
-            let pixel = new Phaser.Geom.Rectangle(0, 0, 200, 200);
-            const pix = this.add.graphics({fillStyle: {color:getRandomColor() }});
-            pix.fillRectShape(pixel);
-            pix.setInteractive(pixel, Phaser.Geom.Rectangle.Contains);
-            pix.on('pointerover', () => {console.log("test");});
+            // GRID SHINE =============================================
+
+            // gridUnderlay serves as our mask for the shine.
+            var gridUnderlay = this.add.rectangle(gridPosX+288,170+288,576,576,0xFFFFFF,0.2);
+
+            // This should essentially be hidden under everything in our canvas.
+            gridUnderlay.setDepth(-10);
+
+            // This is the actual shine that will appear over our grid.
+            let shine = this.add.image(190, 190-75, 'shine');
+            shine.setDepth(2);
+            shine.rotation = -Math.PI/4;
+            shine.setBlendMode(Phaser.BlendModes.ADD);
 
 
-            const helloButton = this.add.text(1000, 100, 'Hello Phaser!', { fill: '#0f0' });
-            helloButton.setInteractive();
+            // We mask the shine so it only appears within the confines of gridUnderlay.
+            const mask = new Phaser.Display.Masks.BitmapMask(this, gridUnderlay);
+            shine.setMask(mask);
 
-            helloButton.on('pointerover', () => { console.log('pointerover'); });
-            */
+            //This is the animation associated w/ the shine.
+            this.tweens.add({
+                targets: shine,
+                x: 960,
+                y: 960-75,
+                //yoyo:true,
+                repeat:-1,
+                repeatDelay: 2000,
+                duration:800,
+            });
+            
+            
+            // ========================================================
+
             
 
-            //NAME BADGES
+            //Logo animation
             pbs.addAllPlayerBoxes();
-            //pbs.resetBoxes();
-            //for(const box in playerNames){
-            //    pbs.addPlayerBox(box);
-            //}
+                this.tweens.add({
+
+                targets: this.logo,
+                duration: 1000,
+                scaleX: 3.75,
+                scaleY: 3.75,
+
+                //Sine.easeInOut
+                ease: 'Phaser.Math.Easing.Linear',
+                repeat: -1,
+                yoyo: true
+            });
+           
+        }
+
+        update(){
+            bgX += 0.5;
+            bgY -= 0.5;
+            container.style.backgroundPositionX = bgX + "px";
+            container.style.backgroundPositionY = bgY + "px";
+        }
+    }
 
 
+    var menuScene = null;
+    var frame = 0;
+    class Menu extends Phaser.Scene
+    {
+        preload ()
+        {
+            this.load.image('logo', 'images/logo.png');
+        }
+
+        create ()
+        {
+            menuScene = this;
+            this.logo = this.add.image(100, 50, 'logo');
+            this.logo.setDepth(10);
+            this.logo.setScale(4);
+            this.logo.setOrigin(0.5,0.5);
+            this.logo.x = 600;
+            this.logo.y = 120;
+
+            this.waitingText = null;
+
+
+            //Logo animation
             this.tweens.add({
 
             targets: this.logo,
@@ -742,75 +555,120 @@
             ease: 'Phaser.Math.Easing.Linear',
             repeat: -1,
             yoyo: true
-
             });
            
         }
 
         update(){
-            pbs.update();
+            frame += 1;
+            //Yeah eventually this is gonna overflow but idc LOL!.
             bgX += 0.5;
             bgY -= 0.5;
             container.style.backgroundPositionX = bgX + "px";
             container.style.backgroundPositionY = bgY + "px";
-            //This is where you update the name thing and just get it back.
+
+            if(frame % 60 == 0){
+                //Avoid overflowidk;
+                frame = 0;
+                this.waitingUpdate();
+            }
+        }
+
+        waitingUpdate(){
+            if(this.waitingText != null){
+                if(this.waitingText.text == "Waiting"){
+                    this.waitingText.text = "Waiting.";
+                }else if(this.waitingText.text == "Waiting."){
+                    this.waitingText.text = "Waiting..";
+                }else if(this.waitingText.text == "Waiting.."){
+                    this.waitingText.text = "Waiting...";
+                }else if(this.waitingText.text == "Waiting..."){
+                    this.waitingText.text = "Waiting";
+                }
+            }
+            
+        }
+
+        loadWaiting(){
+
+            const menuGraphics = this.add.graphics();
+
+
+            //CHANGE THE COLOUR!!!!!!!
+            menuGraphics.fillStyle(0xFFFFFF);
+            
+            menuGraphics.fillRoundedRect(-308/2,-466/2,308,466,6); //Draw this at the center of menugraphics for scaling.
+            //Draw other menu items here ====================================
+            menuGraphics.fillStyle(0x000000,0.1);
+            menuGraphics.fillRoundedRect(-308/2+16, -466/2+73, 276, 252, 6)
+            
+
+            //Add the button...
+
+
+            
+            //===============================================================
+
+            //Draw text here ================================================
+            
+            this.waitingText = this.add.text(608, 266, "Waiting").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
+            //this.add.text(608, 581, "Server ID: 0000").setFontFamily('daydream').setFontSize(22).setColor('#000000').setOrigin(0.5, 0.5)
+            
+
+            //Ugly hack
+            const wt = this.waitingText;
+            //=============================================================
+
+
+            menuGraphics.x = 600;
+            menuGraphics.y = 460;
+
+            const chain = this.tweens.chain({
+                targets: menuGraphics,wt,
+                tweens:[
+                {
+                    duration: 20,
+                    scale: 1.025,
+
+                },
+                {
+                    duration: 20,
+                    scale:1
+                }
+
+                ]
+            })
+
+
+        }
+
+        goToGame(){
+            this.scene.start('Game');
         }
     }
 
     var config = {
-        type: Phaser.AUTO,
+        //type: Phaser.AUTO,
+        type: Phaser.WEBGL,
         width: 1200,
         height: 800,
         parent: 'game-container',
-        
-        //This transparent attribute is causing weird issues w/ chrome??? The screen seems to render like 20x too large?? idk why but no one
-        //else seems to have this issue and it seems to be inherent to chrome (other browsers have never done this.) as a side note, there are
-        //also some other odd rendering issues I've seen w/ chrome. Like lines being absent completely (maybe z-value?). IDk maybe it's my hackintosh...
-        //FUCK GOOGLE CHROME PLEASE UNCOMMENT NEXT LINE
+        backgroundColor: '#562D6E',
         transparent: true,
         resolution: window.devicePixelRatio,
-        //scale: Phaser.Scale.NONE,
-        //"render.transparent": true,
-        //backgroundColor: '#562D6E',
-        //backgroundColor: (0,0,0,0),
+        scale: Phaser.Scale.Center,
+        pixelArt: true,
         antialias: false,
-        scene: Menu,
-        dom:{
-            createContainer: true
-        }
-        
+        scene: [Menu, Game]
     };
 
     var game = new Phaser.Game(config);
 
-    function setName(){
-        //console.log(document.getElementById("pn").value);
-        socket.emit('name change', document.getElementById("pn").value);
-    }
-
-    function sendMessage(){
-        //console.log(document.getElementById("pn").value);
-        socket.emit('sendmsg', document.getElementById("msg").value, playerColor);
-        document.getElementById("msg").value="";
-    }
-
-    function resetBoard(){
-        socket.emit('reset');
-    }
-
 
     </script>
+    <script type="text/javascript" src="net.js"></script>
     <center>
-    <div>
-        <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
-        <form action="javascript:setName();" method="get">
-            Name: <input type="text" name="pn" id="pn"><br>
-            <input type="submit" value="Submit">
-        </form>
-        <form action="javascript:resetBoard();" method="get">
-            <input type="submit" value="reset">
-        </form>
-    </div>
+    
 </center>
 </body>
 
