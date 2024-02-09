@@ -37,32 +37,36 @@
                         <form autocomplete="off" action="javascript:setName();" method="get">
                             <input class="splashInput" type="text" placeholder="What's your name?" name="pn" id="pn"><br>
                             <hr>
-                            <input class="buttonStyle1" type="submit" value="<!Find a Game">
+                            <input class="buttonStyle1" style="text-decoration: line-through;" type="submit" value="--Find a Game--">
                             
                         </form>
                         <hr>
-                        <form action="javascript:goToWait();" method="get">
-                            <input class="buttonStyle1" type="submit" value="Create Private Server">
+                        <form action="javascript:createWaitRoom();" method="get">
+                            <input class="buttonStyle1" type="submit" value="Create Private Room">
                         </form>
                         <!-- OLD <form action="javascript:resetBoard();" method="get">
                             <input type="submit" value="reset">
                         </form> -->
                             <hr>
-                        <form autocomplete="off" action="javascript:chatOn();" method="get">
-                            <input class="splashInput" type="text" placeholder="Server ID" name="pn" id="pn"><br>
-                            <input class="buttonStyle2" type="submit" value="Join Existing Server">
+                        <form autocomplete="off" action="javascript:joinWaitRoom();" method="get">
+                            <input class="splashInput" type="text" placeholder="Room ID" name="customRoomID" id="customRoomID"><br>
+                            <input class="buttonStyle2" type="submit" value="Join Existing Room">
                         </form>
 
 
                     </div>
-                    <div style="position:absolute; bottom:4px; right:4px">PiKCEL.io v1.0.0-Pre-alpha</div>
+                    <div style="position:absolute; bottom:4px; right:4px">PiKCEL.io Pre-alpha</div>
                 </div>
             </div>
 
             <!-------------WAITING MENU CONTENT----------------------->
+            <div class="waitingWinNames" id="waitingWinNames">
+                <div id = "namesToDisplay"></div>
+            </div>
+            <div class = "plrCount" id = "plrCount">(1/4)</div>
             <div class="waitingWin" id="waitingWindow" >
-                Server ID: 0000
-                <form action="javascript:dummy();" method="get">
+                <div id ="rmid"> Room ID: 00000 </div>
+                <form action="javascript:goToGame();" method="get">
                     <input class="buttonStyle1" type="submit" value="Start">
                 </form>
 
@@ -104,6 +108,8 @@
     var splash = true;
 
     const msgWin = document.getElementById('cww');
+
+    var roomID = '-1-1-1-1-1';
 
     class PlayerBadges{
         constructor(posX, posY){
@@ -225,14 +231,7 @@
         }
     }
 
-    socket.emit('init');
 
-    socket.on('init', (num, plrLst, plrNme, clr)=> {
-        if(initialized == false){
-            playerColor = clr;
-            initialized = true;
-        }
-    });
 
 
     class Pixel {
@@ -268,7 +267,7 @@
             {
                 pix.setFillStyle(playerColor);
                 board[this.x][this.y] = playerColor;
-                socket.emit('board update', playerColor, this.x, this.y);
+                socket.emit('board update', playerColor, this.x, this.y, roomID);
             });
 
 
@@ -302,20 +301,7 @@
             pixStore[i][j] = pixel;
         }
     }
-    socket.on("board init", (brd) => {
-        board = brd;
-        for(let i = 0; i < 16; i++){
-            for(let j = 0; j < 16; j++){
-                board[i][j] = brd[i][j];
-            }
-        }
-        for(let i = 0; i < 16; i++){
-            for(let j = 0; j < 16; j++){
 
-                pixStore[i][j].updateColor(board[i][j]);
-            }
-        }
-    });
 
 
     class Grid {
@@ -513,6 +499,8 @@
         }
 
         update(){
+            //This seriously might be a problem......... Need to fix this..... ASAP THIS IS A BIG PRIORITY
+            //IT ISN'T FIXED YET PLEASE FIX IT SOON IT WON'T BE HARD!!!            
             bgX += 0.5;
             bgY -= 0.5;
             container.style.backgroundPositionX = bgX + "px";

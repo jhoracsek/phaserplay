@@ -1,5 +1,27 @@
 
+socket.emit('init');
 
+socket.on('init', (num, plrLst, plrNme, clr)=> {
+    if(initialized == false){
+        playerColor = clr;
+        initialized = true;
+    }
+});
+
+socket.on("board init", (brd) => {
+    board = brd;
+    for(let i = 0; i < 16; i++){
+        for(let j = 0; j < 16; j++){
+            board[i][j] = brd[i][j];
+        }
+    }
+    for(let i = 0; i < 16; i++){
+        for(let j = 0; j < 16; j++){
+
+            pixStore[i][j].updateColor(board[i][j]);
+        }
+    }
+});
 
 
 socket.on('board update', (cell, i,j)=>{
@@ -30,6 +52,8 @@ socket.on('sync players', (plrList, plrName)=> {
         if(pbs.scene != null){
             pbs.addAllPlayerBoxes();
         }
+        console.log(playerNames);
+        waitRoomUpdateNames();
         
 });
 
@@ -77,8 +101,33 @@ socket.on('remove player', (plrList, plrName)=> {
     if(pbs.scene != null){
         pbs.addAllPlayerBoxes();
     }
-
+    waitRoomUpdateNames();
 });
+// ADDITIONAL STUFF FOR ROOMS ============================================
+
+socket.on('sendRoomID', (rmid) => {
+    gotServerConfirmation();
+    roomID = rmid;
+    document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
+    console.log(rmid);
+    let myName = document.getElementById("pn").value;
+    //We want to say like: "hey we are in the room!"
+    socket.emit('connectToRoom', rmid, myName);
+});
+
+socket.on('badRequest', (msg) => {
+    alert(msg);
+    //This is where I should display some sort of message
+});
+
+socket.on('start game', ()=>{
+    startGameForAll();
+});
+
+
+
+
+// =======================================================================
 
 window.addEventListener('beforeunload', function (event) {
     socket.disconnect();

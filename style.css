@@ -187,11 +187,24 @@ body {
     margin-bottom: 5px; 
 }
 
+
+/*WAITING WINDOW STUFF*/
+.waitingWinNames{
+    position: absolute;
+    font-size: 22px;
+    /*left: 31px;*/
+    top: 320px;
+}
 .waitingWin{
     position: absolute;
     font-size: 22px;
     /*left: 31px;*/
-    top: 600px;
+    top: 570px;
+}
+.plrCount{
+    position: absolute;
+    bottom:250px;
+    right:468px
 }
 
 
