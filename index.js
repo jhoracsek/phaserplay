@@ -14,7 +14,7 @@ const io = new Server(server);
 //var playerName = [];
 
 var numOfPlayers = 0;
-
+const plrMap = new Map();
 var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
 
 
@@ -43,6 +43,8 @@ class Room{
 
     //This will be our flag if the game has started or not.
     this.canJoin = true;
+
+    this.clrMap = new Map();
     
   }
 
@@ -63,6 +65,10 @@ class Room{
         }
       }
     }
+  }
+  //socket.id is mapped to player colour
+  getPlayerColour(sock){
+    return this.clrMap.get(sock);
   }
 }
 
@@ -147,6 +153,20 @@ function setBoardColor(){
   }
 }
 
+function getStartCoord(plrNum){
+  switch(plrNum){
+    case 0:
+      return [1,1];
+    case 1:
+      return [14,14];
+    case 2:
+      return [14,1];
+    //Case 3
+    default:
+      return [1,14];
+  }
+}
+
 function randInt(min, max) {
   return Math.floor(Math.random() * ((max+1) - min) ) + min;
 }
@@ -171,11 +191,6 @@ function hash(roomID){
         hash |= 0; // Convert to 32bit integer
     }
     return hash%10067;
-}
-
-const plrMap = new Map();
-function getRoomFrmSock(socketID){
-
 }
 
 //===================================================================
@@ -208,7 +223,7 @@ io.on('connection', (socket) => {
     //this is a socket.emit because you're just sending this back to the guy...
     let roomobject = getRoomObj(rmid);
     //Create unique room id.
-    console.log(roomobject.numOfPlayers)
+    //console.log(roomobject.numOfPlayers)
     if(roomobject == null){
       socket.emit("badRequest", "Room does not exist!");
     //These shoudl be functions that update dynamically!
@@ -253,7 +268,11 @@ io.on('connection', (socket) => {
 
     io.to(plrRoomID).emit("board init", roomObject.board);
 
-    io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, getRandomColor());
+    let plrColour = getRandomColor();
+
+    roomObject.clrMap.set(socket.id, plrColour)
+
+    io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
 
     io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName);
 
@@ -264,7 +283,13 @@ io.on('connection', (socket) => {
     //===================================================================
   });
 
+  /*
+    Note: There is a potential vulnerability here. Someone can modify
+    index.html to send one of these request if they find out a room is full/is started
+    (by attempting to join all the rooms) Not a big deal, but you should also
+    verify that the request comes from a player who is in the room already.
 
+  */
   socket.on("name change", (name,plrRoomID)=>{
       let roomObject = getRoomObj(plrRoomID);
 
@@ -293,13 +318,35 @@ io.on('connection', (socket) => {
 
       roomObject.board[i][j] = cell;
       io.to(plrRoomID).emit('board update', cell, i,j);
+
   });
 
   socket.on('start game', (plrRoomID) => {
+    /*
+      Let's start by just drawing each thing...
+    */
     let roomObject = getRoomObj(plrRoomID);
+    if(roomObject.numOfPlayers == 1){
+      socket.emit("badRequest", "Need more than 1 player!");
+    }else{
       io.to(plrRoomID).emit('start game');
       roomObject.canJoin = false;
-      //WE SHOULD ALSO NOT ALLOW PEOPLE TO ENTER THE ROOM ANYMORE AT THIS POINT!!!!!
+      //Now the game has started!!!!
+      console.log("Game started: " +roomObject.playerList.length);
+      //print colours
+      for(let i = 0; i < roomObject.playerList.length; i++){
+        console.log(roomObject.playerName[i] + ": " + roomObject.getPlayerColour(roomObject.playerList[i]));
+      }
+
+      //Update board with initial colours:
+      for(let i = 0; i < roomObject.playerList.length; i++){
+        let clrToDraw = roomObject.getPlayerColour(roomObject.playerList[i]);
+        let [x,y] = getStartCoord(i);
+        //console.log(x,y);
+        roomObject.board[x][y]=clrToDraw;
+        io.to(plrRoomID).emit('board update', clrToDraw, x,y);
+      }      
+    }
   });
   
 
