@@ -5,7 +5,7 @@
     <script src="./phaser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
-    <title> pikcel - Some Nonsense </title>
+    <title> PiKCEL - Play with Friends! </title>
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -95,15 +95,20 @@
 
     var initialized = false;
 
-    const playerColours = ['0xFF0000', '0x00FF00', '0x0000FF', '0xF0F0F0'];
+    var playerColours = new Array(4);
     var playerList = [];
     var playerNames = [];
+
+    var playerNum = -1;
+    var myTurn = false;
+    var whoseTurn = -1;
+    var numPlaced = 0;
+    var numAllowedToPlace = -1;
+    var numLeft = -1;
 
     var myName = "";
 
     var shadowOffset = 5;
-
-    var tttt = 1;
 
     var splash = true;
 
@@ -188,7 +193,9 @@
                 toBeMasked.setMask(mask);
                 this.playerBoxes.push(toBeMasked);
                 //console.log(playerColor)
-                var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('Arial').setFontSize(17).setColor('#6b4ea2').setOrigin(0.5, 0.5)//.setStroke('#'+playerColor.slice(2, 8), 5);
+                //.setColor('#6b4ea2') OLD]
+                console.log(playerColor[num]);
+                var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('daydream').setFontSize(17).setColor(convertColorCode(playerColours[num])).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
                 pt.antialias = true;
 
                 this.playerTexts.push(pt);
@@ -232,7 +239,22 @@
     }
 
 
-
+    function checkAdj(x,y){
+        //playerColor
+        //Need to check if it's one of the two default colours first... What are these and what format?? 0x
+        if(board[x][y] == '0xEFEFEF' || board[x][y] == '0xFFFFFF'){
+            //Now we can draw, if we are adjacent to one of the playerColor tiles
+            if(x > 0 && board[x-1][y] == playerColor)
+                return true;
+            if(x < 15 && board[x+1][y] == playerColor)
+                return true;
+            if(y > 0 && board[x][y-1] == playerColor)
+                return true;
+            if(y < 15 && board[x][y+1] == playerColor)
+                return true;
+        }
+        return false;
+    }
 
     class Pixel {
         constructor(posX, posY, size, x, y){
@@ -265,9 +287,20 @@
             pix.setInteractive()
             pix.on('pointerdown', (pointer)=>
             {
-                pix.setFillStyle(playerColor);
-                board[this.x][this.y] = playerColor;
-                socket.emit('board update', playerColor, this.x, this.y, roomID);
+                if(myTurn && checkAdj(this.x, this.y)){
+                    console.log(playerColor)
+
+                    pix.setFillStyle(playerColor);
+                    board[this.x][this.y] = playerColor;
+                    socket.emit('board update', playerColor, this.x, this.y, roomID);
+                    numPlaced++;
+                    if (numPlaced >= numAllowedToPlace){
+                        //This is where we emit the player turn update
+                        socket.emit('turn update', playerNum, roomID);
+                        numPlaced = 0;
+                        myTurn = false;
+                    }
+                }
             });
 
 
@@ -372,19 +405,29 @@
     let container = document.querySelector("body");
     var bgX = 0;
     var bgY = 0;
+    var gameScene = null;
     class Game extends Phaser.Scene
     {
         constructor(){
             super('Game');
+            //this.create();
+            gameScene = this;
+            this.popUpGraphics = null;
         }
         preload ()
         {
             this.load.image('logo', 'images/logo.png');
             this.load.image('shine', 'images/shine.png');
+
         }
+
+        
 
         create ()
         {
+            gameScene = this;
+
+
             this.logo = this.add.image(100, 50, 'logo');
             this.logo.setDepth(10);
             this.logo.setScale(4);
@@ -480,6 +523,14 @@
             // ========================================================
 
             
+            //Need to draw text overlay for number of spaces left (add a little bop anitmation...) HERE IS WHAT I'M WORKING ON...
+            console.log('Look here:' + whoseTurn + ' '+ playerColours[whoseTurn]);
+            this.numText = this.add.text(1044, 309, numAllowedToPlace+"/"+numAllowedToPlace).setFontFamily('daydream').setFontSize(47).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
+            this.numText.setDepth(101);
+
+            this.nameTextRight = this.add.text(1044, 400, playerNames[whoseTurn]).setFontFamily('daydream').setFontSize(27).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
+            this.nameTextRight.setDepth(101);
+            
 
             //Logo animation
             pbs.addAllPlayerBoxes();
@@ -496,6 +547,87 @@
                 yoyo: true
             });
            
+        }
+
+        newTurnGraphic(plrName){
+
+            if(this.popUp != null)
+                this.popUp.destroy();
+            this.popUp = this.add.graphics();
+            this.popUp.setDepth(100);
+            this.popUp.fillStyle(0xFFFFFF);
+            //What is canvas size? 1200 x 800, So mid is 600 x 400
+            let pWidth = 450;
+            let pHeight = 100;
+
+            //Fuck the shaow for now
+            this.popUp.fillStyle(0x000000,0.17);
+            this.popUp.fillRoundedRect(-pWidth/2+shadowOffset,-pHeight/2+shadowOffset,pWidth,pHeight,6);
+
+            this.popUp.fillStyle(0xFFFFFF,1);
+            this.popUp.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
+
+
+            //WHERE IS THE FUCKING TEC
+            //Make it the players colour
+            if(this.nameText == null){
+                this.nameText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
+                this.nameText.setDepth(101);
+            }else{
+                this.nameText.setText(plrName+"\'s turn!")
+                this.nameText.alpha = 1;
+            }
+            this.popUp.x = 600;
+            this.popUp.y = 400;
+            
+            let nt = this.nameText;
+
+            const chain = this.tweens.chain({
+                //Also a target should be the text...
+                targets: this.popUp,
+                tweens:[
+                {
+                    duration: 20,
+                    //scale: 1.025,
+                    scale: 1.1,
+
+                },
+                {
+                    duration: 20,
+                    scale:1
+                },
+                {
+                    duration: 750,
+                    alpha:1
+                },
+
+                {
+                    duration: 300,
+                    alpha: 0
+                }
+
+                ]
+
+            })
+            //For text (doesn't really like two this LOL)
+            const chain1 = this.tweens.chain({
+                //Also a target should be the text...
+                targets: this.nameText,
+                tweens:[
+                {
+                    duration: 790,
+                    alpha:1
+                },
+
+                {
+                    duration: 300,
+                    alpha: 0
+                }
+
+                ]
+
+            })
+
         }
 
         update(){
@@ -631,6 +763,7 @@
         }
 
         goToGame(){
+            console.log('testsfpak');
             this.scene.start('Game');
         }
     }

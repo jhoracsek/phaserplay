@@ -227,9 +227,15 @@ io.on('connection', (socket) => {
     if(roomobject == null){
       socket.emit("badRequest", "Room does not exist!");
     //These shoudl be functions that update dynamically!
-    }else if(!roomobject.canJoin){
+    }
+
+    else if(!roomobject.canJoin){
       socket.emit("badRequest", "Game is already in progress!");
-    }else if(roomobject.isFull()){
+    }
+
+
+
+    else if(roomobject.isFull()){
       socket.emit("badRequest", "Room is full!");
     }
     else{
@@ -326,7 +332,8 @@ io.on('connection', (socket) => {
       Let's start by just drawing each thing...
     */
     let roomObject = getRoomObj(plrRoomID);
-    if(roomObject.numOfPlayers == 1){
+
+    if(false){//DISBLED TEMP FOR TESTroomObject.numOfPlayers == 1){
       socket.emit("badRequest", "Need more than 1 player!");
     }else{
       io.to(plrRoomID).emit('start game');
@@ -345,9 +352,24 @@ io.on('connection', (socket) => {
         //console.log(x,y);
         roomObject.board[x][y]=clrToDraw;
         io.to(plrRoomID).emit('board update', clrToDraw, x,y);
-      }      
+        io.to(plrRoomID).emit('assign num', i, roomObject.playerList[i], clrToDraw);
+      }
+      //For now, the number a player is allowed to place is just 5. Going forward it will be random.
+      io.to(plrRoomID).emit('new turn', 0,roomObject.playerName[0],5);
+      //Something like, socket.emit('new turn')
+      // No you have to wait until everyone sends confirmation that they got their turn.
     }
   });
+
+  socket.on('turn update', (plrNum, plrRoomID)=>{
+    //Should be the player after plrNum...
+    let roomObject = getRoomObj(plrRoomID);
+    let numPlrs = roomObject.numOfPlayers;
+
+    let nextTurn = (plrNum+1)%numPlrs;
+    //Again here 5 should be random...
+    io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], 5);
+  })
   
 
   

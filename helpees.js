@@ -22,6 +22,23 @@ function getRandomColor() {
 	return color;
 }
 
+var timerSeconds = 31;
+let interval;
+function startCD(){
+	//Add like one extra second of buffer...
+	timerSeconds = 31;
+	clearInterval(interval);
+	interval = setInterval(() => {
+	    if (timerSeconds > 0) {
+	      console.log(timerSeconds);
+	      timerSeconds--;
+	    } else {
+	      console.log("Time's up!");
+	      clearInterval(interval);
+	    }
+	  }, 1000);
+}
+
 
 function setName(){
     socket.emit('name change', document.getElementById("pn").value, roomID);
@@ -134,7 +151,8 @@ function goToGame(){
 	//cht.style.display = "block";
 }
 
-function startGameForAll(){
+async function startGameForAll(){
+	menuScene.goToGame();
 	var cw = document.getElementById("cw");
 	var cht = document.getElementById("cht");
 	var splsh = document.getElementById("splsh");
@@ -145,9 +163,11 @@ function startGameForAll(){
 	ww.style.display = "none";
 	wwn.style.display = "none";
 	plrCount.style.display = "none";
-	menuScene.goToGame();
+	
+	//await gameScene != null;
 	cw.style.display = "block";
 	cht.style.display = "block";
+	console.log('I guess Im printed after')
 }
 
 

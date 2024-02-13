@@ -28,6 +28,10 @@ socket.on('board update', (cell, i,j)=>{
     
     board[i][j] = cell;
     pixStore[i][j].updateColor(board[i][j]);
+    numLeft--;
+    if(gameScene.numText!=null){
+        gameScene.numText.setText(numLeft+"/"+numAllowedToPlace);
+    }
 });
 
 socket.on('board reset', (brd)=>{
@@ -122,8 +126,54 @@ socket.on('badRequest', (msg) => {
 
 socket.on('start game', ()=>{
     startGameForAll();
+    console.log('I should be init here and print before poop...')
 });
 
+
+socket.on('assign num', (plrNum, plrSock, plrColor)=>{
+    console.log('here:' + plrColor)
+    playerColours[plrNum] = plrColor;
+    if (plrSock == socket.id){
+        playerNum = plrNum;
+        console.log(playerNum);
+    }
+});
+
+//This is where we handle someone getting a turn.
+socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
+    //YOU NEED TO DISPLAY SOM E STUFF HERE!!!!!!!!!!!
+    numAllowedToPlace = numToPlace;
+    //gameScene
+    numLeft = numToPlace;
+    //We need to somehow wait here for gameScene to be init...
+    if(gameScene == null){
+        startGameForAll();
+    }console.log(gameScene);
+    
+    gameScene.newTurnGraphic(plrNam);
+    whoseTurn = plrNum;
+    //Update some graphics stuff
+    if(gameScene.numText != null){
+        gameScene.numText.setText(numToPlace+"/"+numToPlace);
+        gameScene.numText.setColor(convertColorCode(playerColours[whoseTurn]))
+
+        console.log(playerNames[plrNum])
+        gameScene.nameTextRight.setText(playerNames[whoseTurn])
+        gameScene.nameTextRight.setColor(convertColorCode(playerColours[whoseTurn]))
+    }
+
+    if (playerNum == plrNum){
+        //It's my turn!!!
+        //I think we should set some flag, like myTurn = true;
+        //Then count the number of clicks. If The number of clicks exceeds like 5
+        //Then make another turn...
+        myTurn = true;
+        
+    }
+
+    startCD();
+
+});
 
 
 
