@@ -32,6 +32,7 @@ class Room{
     this.roomID = roomID;
     this.playerList = [];
     this.ogList = [];
+    this.ogNames = [];
     this.playerName = [];
     //Number of players actively connected
     this.numOfPlayers = 0;
@@ -331,6 +332,7 @@ io.on('connection', (socket) => {
       tempName = testNames[Math.floor(Math.random()*testNames.length)];
     }else{tempName=myName;}
     roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
 
     io.to(plrRoomID).emit("board init", roomObject.board);
 
@@ -446,7 +448,7 @@ io.on('connection', (socket) => {
 
     if(lost){
       roomObject.hasLost[plrNum] = true;
-      io.to(plrRoomID).emit("reclog", '0xABCDEF', roomObject.playerName[plrNum] + " is out!");
+      io.to(plrRoomID).emit("reclog", '0xABCDEF', roomObject.ogNames[plrNum] + " is out!");
       //Need to make sure the last player is declared the winner.......
     }
 
@@ -468,7 +470,7 @@ io.on('connection', (socket) => {
     //So something like
     
     if(roomObject.checkWinCondition()){
-      io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.playerName[nextTurn] + " is the winner!");
+      io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
       io.to(plrRoomID).emit('game over');
     }else{
       console.log("Check?????????????????")
@@ -498,6 +500,7 @@ io.on('connection', (socket) => {
 
         if(!roomObject.gameStarted){
           roomObject.ogList.splice(index, 1);
+          roomObject.ogNames.splice(index, 1);
         }
 
 
@@ -537,7 +540,6 @@ io.on('connection', (socket) => {
         //
 
         //Start the next turn when the active turn disconnects.
-
         if(roomObject.currentTurn == ogIndex){
         
           let numPlrs = roomObject.numPlayersAtStart;
@@ -551,6 +553,8 @@ io.on('connection', (socket) => {
               break;
             }
           }
+          //You hit once...
+          roomObject.currentTurn = nextTurn;
           io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
         }
         //let nextTurn = (plrNum+1)%numPlrs;
