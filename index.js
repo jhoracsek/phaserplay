@@ -260,7 +260,9 @@ app.get('/', (req, res)=>{
 });
 
 
-
+setInterval(()=>{
+    io.emit("tick");
+  }, 1000)
 
 io.on('connection', (socket) => {
   //All the stuff below should just happen when a player enters a room.
