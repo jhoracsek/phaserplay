@@ -260,13 +260,17 @@ app.get('/', (req, res)=>{
 });
 
 
-
+setInterval(()=>{
+    io.emit("tick");
+  }, 1000)
 
 io.on('connection', (socket) => {
   //All the stuff below should just happen when a player enters a room.
   // ON PLAYER CONNECT =================================================
 	console.log('a user', socket.id,  'connnected');
   numOfPlayers++;
+
+  
 
   socket.on("requestToJoinRoom", (rmid)=>{
     //this is a socket.emit because you're just sending this back to the guy...
@@ -463,6 +467,7 @@ io.on('connection', (socket) => {
     
     if(roomObject.checkWinCondition()){
       io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.playerName[nextTurn] + " is the winner!");
+      io.to(plrRoomID).emit('game over');
     }else{
       console.log("Check?????????????????")
       io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());

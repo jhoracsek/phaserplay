@@ -147,10 +147,32 @@ socket.on('assign num', (plrNum, plrSock, plrColor)=>{
     }
 });
 
+
+var gameOver = false;
+socket.on('tick', ()=>{
+    if(!gameOver){
+        if (timerSeconds > -1) {
+          if(gameScene.clock != null){
+            gameScene.clock.setText(timerSeconds);
+          }
+          timerSeconds--;
+        } else if (myTurn){
+                lose();    
+        }
+    }
+});
+
+socket.on('game over', ()=>{
+    gameOver = true;
+})
+
 //This is where we handle someone getting a turn.
 socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
     //YOU NEED TO DISPLAY SOM E STUFF HERE!!!!!!!!!!!
-    startCD();
+    let test =new Date().toLocaleString();
+    console.log(test)
+    //startCD();
+    timerSeconds = 20;
     numAllowedToPlace = numToPlace;
     //gameScene
     numLeft = numToPlace;

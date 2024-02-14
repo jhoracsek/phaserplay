@@ -32,8 +32,11 @@ function startCD(){
 	    if (timerSeconds > -1) {
 	    	//Dont update graphic when timer = 0/1;
 	      //console.log(timerSeconds);
-	      if(gameScene.clock != null)
+	      if(gameScene.clock != null){
 	      	gameScene.clock.setText(timerSeconds);
+	      	//At least make sure console is on the same page
+	      	console.log(timerSeconds);
+	      }
 	      timerSeconds--;
 	    } else {
 	    	if(myTurn){
