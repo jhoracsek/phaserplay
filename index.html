@@ -97,6 +97,9 @@
 
     var playerColours = new Array(4);
     var playerList = [];
+    var ogNames = [];
+    var ogColours = [];
+
     var playerNames = [];
 
     var playerNum = -1;
@@ -154,6 +157,8 @@
                 if (box == playerNames.length-1){
                     last = true;
                 }
+                //Get the og index
+                //This is inefficent and stupid lol but it's clientside so I don't really care.
                 this.addPlayerBox(box, first, last);
                 first = false;
             }
@@ -194,8 +199,8 @@
                 this.playerBoxes.push(toBeMasked);
                 //console.log(playerColor)
                 //.setColor('#6b4ea2') OLD]
-                console.log(playerColor[num]);
-                var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('daydream').setFontSize(17).setColor(convertColorCode(playerColours[num])).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
+
+                var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('daydream').setFontSize(17).setColor(convertColorCode(ogColours[num])).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
                 pt.antialias = true;
 
                 this.playerTexts.push(pt);
@@ -296,7 +301,7 @@
                     numPlaced++;
                     if (numPlaced >= numAllowedToPlace){
                         //This is where we emit the player turn update
-                        socket.emit('turn update', playerNum, roomID);
+                        socket.emit('turn update', playerNum, roomID, false);
                         numPlaced = 0;
                         myTurn = false;
                     }
@@ -524,11 +529,12 @@
 
             
             //Need to draw text overlay for number of spaces left (add a little bop anitmation...) HERE IS WHAT I'M WORKING ON...
-            console.log('Look here:' + whoseTurn + ' '+ playerColours[whoseTurn]);
-            this.numText = this.add.text(1044, 309, numAllowedToPlace+"/"+numAllowedToPlace).setFontFamily('daydream').setFontSize(47).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
+            this.clock = this.add.text(1140, 198, timerSeconds).setFontFamily('daydream').setFontSize(37).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
+            this.clock.setDepth(101);
+            this.numText = this.add.text(1044, 309, numAllowedToPlace+"/"+numAllowedToPlace).setFontFamily('daydream').setFontSize(52).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
             this.numText.setDepth(101);
 
-            this.nameTextRight = this.add.text(1044, 400, playerNames[whoseTurn]).setFontFamily('daydream').setFontSize(27).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
+            this.nameTextRight = this.add.text(1044, 400, ogNames[whoseTurn]).setFontFamily('daydream').setFontSize(27).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
             this.nameTextRight.setDepth(101);
             
 

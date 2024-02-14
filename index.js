@@ -29,8 +29,12 @@ class Room{
   constructor(roomID){
     this.roomID = roomID;
     this.playerList = [];
+    this.ogList = [];
     this.playerName = [];
+    //Number of players actively connected
     this.numOfPlayers = 0;
+    //Number of players connected at game start
+    this.numPlayersAtStart = 0;
     this.board = new Array(16);
 
     for (let i = 0; i < 16; i++){
@@ -45,13 +49,32 @@ class Room{
     this.canJoin = true;
 
     this.clrMap = new Map();
-    
+    this.hasLost = [];
+
+    this.currentTurn = -1;
+    this.gameStarted = false;
+
+    this.colourList = [];
   }
 
   isFull(){
     if(this.numOfPlayers >= 4)
       return true;
     return false;
+  }
+
+  checkWinCondition(){
+    let n = this.hasLost.length;
+    var count = 0;
+    for(let i = 0; i < n; i++){
+      if(!this.hasLost[i])
+        count++
+    }
+    if(count <= 1){
+      return true;
+    }
+    return false;
+
   }
 
 
@@ -167,8 +190,32 @@ function getStartCoord(plrNum){
   }
 }
 
+//Min and max inclusive
 function randInt(min, max) {
   return Math.floor(Math.random() * ((max+1) - min) ) + min;
+}
+
+function getRandNum(){
+  var rand = Math.random();
+
+  if(rand < 0.10){
+    return 3;
+  }
+  if(rand < 0.25){
+    return 4;
+  }
+  if(rand < 0.5){
+    return 5;
+  }
+  if(rand > 0.90){
+    return 8;
+  }
+  if(rand > 0.75){
+    return 7;
+  }
+  if(rand >= 0.5){
+    return 6;
+  }
 }
 
 function generateRoomID(){
@@ -192,6 +239,8 @@ function hash(roomID){
     }
     return hash%10067;
 }
+
+
 
 //===================================================================
 
@@ -259,13 +308,18 @@ io.on('connection', (socket) => {
 
     plrMap.set(socket.id, plrRoomID);
 
-    console.log(plrRoomID);
+
 
     let roomObject = getRoomObj(plrRoomID);
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
 
+    let plrColour = getRandomColor();
     roomObject.playerList.push(socket.id);
+    roomObject.ogList.push(socket.id);
+    roomObject.colourList.push(plrColour);
+
     var tempName = "";
     if(myName == ""){
       tempName = testNames[Math.floor(Math.random()*testNames.length)];
@@ -274,13 +328,14 @@ io.on('connection', (socket) => {
 
     io.to(plrRoomID).emit("board init", roomObject.board);
 
-    let plrColour = getRandomColor();
+    
 
     roomObject.clrMap.set(socket.id, plrColour)
+    roomObject.hasLost.push(false);
 
     io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
 
-    io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName);
+    io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);
 
 
     //Needs tp ja pahppen befre this one
@@ -332,18 +387,19 @@ io.on('connection', (socket) => {
       Let's start by just drawing each thing...
     */
     let roomObject = getRoomObj(plrRoomID);
+    roomObject.gameStarted = true;
 
     if(false){//DISBLED TEMP FOR TESTroomObject.numOfPlayers == 1){
       socket.emit("badRequest", "Need more than 1 player!");
     }else{
-      io.to(plrRoomID).emit('start game');
+      io.to(plrRoomID).emit('start game', roomObject.playerName);
       roomObject.canJoin = false;
       //Now the game has started!!!!
-      console.log("Game started: " +roomObject.playerList.length);
+
       //print colours
-      for(let i = 0; i < roomObject.playerList.length; i++){
-        console.log(roomObject.playerName[i] + ": " + roomObject.getPlayerColour(roomObject.playerList[i]));
-      }
+      //for(let i = 0; i < roomObject.playerList.length; i++){
+      //  console.log(roomObject.playerName[i] + ": " + roomObject.getPlayerColour(roomObject.playerList[i]));
+      //}
 
       //Update board with initial colours:
       for(let i = 0; i < roomObject.playerList.length; i++){
@@ -355,20 +411,66 @@ io.on('connection', (socket) => {
         io.to(plrRoomID).emit('assign num', i, roomObject.playerList[i], clrToDraw);
       }
       //For now, the number a player is allowed to place is just 5. Going forward it will be random.
-      io.to(plrRoomID).emit('new turn', 0,roomObject.playerName[0],5);
+
+      //Maybe just define your own distribution function.
+      io.to(plrRoomID).emit('new turn', 0,roomObject.playerName[0],getRandNum());
+      roomObject.currentTurn = 0;
       //Something like, socket.emit('new turn')
       // No you have to wait until everyone sends confirmation that they got their turn.
     }
   });
 
-  socket.on('turn update', (plrNum, plrRoomID)=>{
+  socket.on('turn update', (plrNum, plrRoomID, lost)=>{
     //Should be the player after plrNum...
-    let roomObject = getRoomObj(plrRoomID);
-    let numPlrs = roomObject.numOfPlayers;
 
-    let nextTurn = (plrNum+1)%numPlrs;
-    //Again here 5 should be random...
-    io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], 5);
+    let roomObject = getRoomObj(plrRoomID);
+
+    if(roomObject == null){
+      return;
+    }
+
+
+    //console.log("Whose turn ended??" + plrNum)
+
+    let numPlrs = roomObject.numPlayersAtStart;
+
+    //Needs to skip the turns of players who have either:
+    //(a) disconnected (maybe we can just not kick the player from the game so their timer runs out?)
+    //(b) lost the game
+
+    if(lost){
+      roomObject.hasLost[plrNum] = true;
+      io.to(plrRoomID).emit("reclog", '0xABCDEF', roomObject.playerName[plrNum] + " is out!");
+      //Need to make sure the last player is declared the winner.......
+    }
+
+    let nextTurn = -1;
+    var i = 0;
+    //This should
+    for(let i = 0; i < numPlrs; i++){
+      let nextPotentialTurn =(plrNum+1+i)%numPlrs; 
+      if (roomObject.hasLost[nextPotentialTurn] == false){
+        nextTurn = nextPotentialTurn;
+        break;
+      }
+    }
+    roomObject.currentTurn = nextTurn;
+    //let nextTurn = (plrNum+1)%numPlrs;
+    //CHECK THE WIN CONDITION!!!!!!!!!! SHOULD BE A FUNCTION OF THE CLASS!!!!!!!!!!!!!!!!!!!!!
+
+    console.log(roomObject.checkWinCondition());
+    //So something like
+    
+    if(roomObject.checkWinCondition()){
+      io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.playerName[nextTurn] + " is the winner!");
+    }else{
+      console.log("Check?????????????????")
+      io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
+    }
+
+    
+
+    //io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
   })
   
 
@@ -384,16 +486,68 @@ io.on('connection', (socket) => {
       let plrRoomID = plrMap.get(socket.id);
       if(plrRoomID != null){
         let roomObject = getRoomObj(plrRoomID);
-        console.log("RARW" + plrRoomID);
+        let index = roomObject.playerList.indexOf(socket.id);
+
+
+        if(!roomObject.gameStarted){
+          roomObject.ogList.splice(index, 1);
+        }
+
+
+        let ogIndex = roomObject.ogList.indexOf(socket.id);
+        //Need to iterate through playerList to find the index associated w/ the player.
+        //roomObject.playerList
+        /*
+        let plrs=roomObject.playerList;
+        let n = plrs.length;
+        let ind = 0;
+        for(ind = 0; ind < n; ind++){
+          if(plrs[ind] == socket.id){
+            break;
+          }
+        }
+        */
+
+        
+        roomObject.hasLost[ogIndex] = true;
+
         socket.emit("disc");
         roomObject.numOfPlayers--;
-        let index = roomObject.playerList.indexOf(socket.id);
+
+
+
+
+        io.to(plrRoomID).emit("reclog", '0xfc5b35', roomObject.playerName[index] + " disconnected.");
+
+        
         roomObject.playerList.splice(index, 1);
         roomObject.playerName.splice(index, 1);
+        roomObject.colourList.splice(index, 1);
+        io.to(plrRoomID).emit("remove player", roomObject.playerList, roomObject.playerName, roomObject.colourList);
 
+        //I don't think we even should do this, I think it's sufficient to just remove it from the client and preserve the list order here.
+        //
+        //
 
-        io.to(plrRoomID).emit("reclog", '0xfc5b35', roomObject.playerName + " disconnected.");
-        io.to(plrRoomID).emit("remove player", roomObject.playerList, roomObject.playerName);
+        //Start the next turn when the active turn disconnects.
+
+        if(roomObject.currentTurn == ogIndex){
+        
+          let numPlrs = roomObject.numPlayersAtStart;
+          let nextTurn = -1;
+          var i = 0;
+          //This should
+          for(let i = 0; i < numPlrs; i++){
+            let nextPotentialTurn =(ogIndex+i)%numPlrs; 
+            if (roomObject.hasLost[nextPotentialTurn] == false){
+              nextTurn = nextPotentialTurn;
+              break;
+            }
+          }
+          io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
+        }
+        //let nextTurn = (plrNum+1)%numPlrs;
+
       	//console.log('user', socket.id, 'disconnected');
 
         //IF YOU'RE THE LAST FUCKING BRUH IN THE ROOM THEN THE FUCKING ROOM SHOULD BE 

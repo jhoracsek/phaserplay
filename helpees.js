@@ -22,21 +22,32 @@ function getRandomColor() {
 	return color;
 }
 
-var timerSeconds = 31;
+var timerSeconds = 20;
 let interval;
 function startCD(){
 	//Add like one extra second of buffer...
-	timerSeconds = 31;
+	timerSeconds = 20;
 	clearInterval(interval);
 	interval = setInterval(() => {
-	    if (timerSeconds > 0) {
-	      console.log(timerSeconds);
+	    if (timerSeconds > -1) {
+	    	//Dont update graphic when timer = 0/1;
+	      //console.log(timerSeconds);
+	      if(gameScene.clock != null)
+	      	gameScene.clock.setText(timerSeconds);
 	      timerSeconds--;
 	    } else {
-	      console.log("Time's up!");
+	    	if(myTurn){
+	      		lose();
+	    	}
 	      clearInterval(interval);
 	    }
 	  }, 1000);
+}
+
+function lose(){
+	//We need to tell server....
+	//Disconnected players can't call this...
+	socket.emit('turn update', playerNum, roomID, true);
 }
 
 
@@ -167,7 +178,6 @@ async function startGameForAll(){
 	//await gameScene != null;
 	cw.style.display = "block";
 	cht.style.display = "block";
-	console.log('I guess Im printed after')
 }
 
 

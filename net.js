@@ -43,7 +43,7 @@ socket.on('board reset', (brd)=>{
       }
 });
 
-socket.on('sync players', (plrList, plrName)=> {
+socket.on('sync players', (plrList, plrName, clrList)=> {
         playerList = [];
         for(plr in plrList){
             playerList.push(plrList[plr]);
@@ -53,15 +53,21 @@ socket.on('sync players', (plrList, plrName)=> {
         for(plr in plrName){
             playerNames.push(plrName[plr]);
         }
+
+        ogColours = [];
+        for(plr in plrName){
+            ogColours.push(clrList[plr]);
+        }
         if(pbs.scene != null){
             pbs.addAllPlayerBoxes();
         }
-        console.log(playerNames);
+
         waitRoomUpdateNames();
         
 });
 
 socket.on('recmsg', (clr, name, msg) => {
+    console.log('do i fire?')
         const element = document.getElementById("cww");
         let old = element.innerHTML;
         if (old == ""){
@@ -91,7 +97,7 @@ socket.on('disc', ()=>{
     socket.disconnect();
 });
 
-socket.on('remove player', (plrList, plrName)=> {
+socket.on('remove player', (plrList, plrName, clrList)=> {
     playerList = [];
     for(plr in plrList){
         playerList.push(plrList[plr]);
@@ -100,6 +106,11 @@ socket.on('remove player', (plrList, plrName)=> {
     playerNames = [];
     for(plr in plrName){
         playerNames.push(plrName[plr]);
+    }
+
+    ogColours = [];
+    for(plr in plrName){
+        ogColours.push(clrList[plr]);
     }
     
     if(pbs.scene != null){
@@ -113,7 +124,6 @@ socket.on('sendRoomID', (rmid) => {
     gotServerConfirmation();
     roomID = rmid;
     document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
-    console.log(rmid);
     let myName = document.getElementById("pn").value;
     //We want to say like: "hey we are in the room!"
     socket.emit('connectToRoom', rmid, myName);
@@ -124,54 +134,52 @@ socket.on('badRequest', (msg) => {
     //This is where I should display some sort of message
 });
 
-socket.on('start game', ()=>{
+socket.on('start game', (ogNme)=>{
+    ogNames = ogNme;
     startGameForAll();
-    console.log('I should be init here and print before poop...')
 });
 
 
 socket.on('assign num', (plrNum, plrSock, plrColor)=>{
-    console.log('here:' + plrColor)
     playerColours[plrNum] = plrColor;
     if (plrSock == socket.id){
         playerNum = plrNum;
-        console.log(playerNum);
     }
 });
 
 //This is where we handle someone getting a turn.
 socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
     //YOU NEED TO DISPLAY SOM E STUFF HERE!!!!!!!!!!!
+    startCD();
     numAllowedToPlace = numToPlace;
     //gameScene
     numLeft = numToPlace;
     //We need to somehow wait here for gameScene to be init...
     if(gameScene == null){
         startGameForAll();
-    }console.log(gameScene);
-    
-    gameScene.newTurnGraphic(plrNam);
+    }
     whoseTurn = plrNum;
+    gameScene.newTurnGraphic(ogNames[whoseTurn]);
+    
     //Update some graphics stuff
     if(gameScene.numText != null){
         gameScene.numText.setText(numToPlace+"/"+numToPlace);
+        console.log(playerColours[whoseTurn]);
         gameScene.numText.setColor(convertColorCode(playerColours[whoseTurn]))
 
-        console.log(playerNames[plrNum])
-        gameScene.nameTextRight.setText(playerNames[whoseTurn])
+        gameScene.nameTextRight.setText(ogNames[whoseTurn])
         gameScene.nameTextRight.setColor(convertColorCode(playerColours[whoseTurn]))
+
+        gameScene.clock.setText(timerSeconds);
+        gameScene.clock.setColor(convertColorCode(playerColours[whoseTurn]))
     }
 
     if (playerNum == plrNum){
-        //It's my turn!!!
-        //I think we should set some flag, like myTurn = true;
-        //Then count the number of clicks. If The number of clicks exceeds like 5
-        //Then make another turn...
         myTurn = true;
         
     }
 
-    startCD();
+
 
 });
 
