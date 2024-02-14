@@ -3,7 +3,8 @@ const app = express();
 app.use(express.static("./"));
 const http = require('http');
 const https = require('https');
-const server = https.createServer(app);
+const server = http.createServer(app);
+//const serverHttps = https.createServer(app);
 
 const { Server } = require("socket.io");
 const io = new Server(server);
@@ -568,6 +569,6 @@ io.on('connection', (socket) => {
 
 
 
-server.listen(443, () =>{
+server.listen(3000, () =>{
 	console.log('listening on *:3000');
 });
