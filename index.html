@@ -17,45 +17,120 @@
         
         <div id="game-container", class="cent">
             <div  class = "splash" id = "splsh">
+
+                <!--------- These are what I'm working on -------->
                 <div class="splashLeft">
                     <h2>How to play</h2>
+                    <div class="splashLeftContent">
+                        <div style="padding:10px;">
+                            Start by placing pixels to adjacent blank spaces.
+                        </div>
+                        <img src="images/example1.gif" style="width:125px; height:100px;">
+                        <div style="padding:10px;">
+                            Block your opponents from expanding their pixels.
+                        </div>
+                        <img src="images/example2.gif" style="width:125px; height:100px;">
+                        <div style="padding:10px;">
+                            If your timer runs out, you lose!
+                        </div>
+                        <!-- BIG INTERVAL TIMER HERE!!! -->
+                        
+                    </div>
                 </div>
                 <div class="splashTopRight">
                     <h2>Announcements</h2>
-                </div>
-                <div class="splashBottomRight">
-                    <h2>About</h2>
+                    <div class="splashRightContent" style="overflow:hidden">  <!--<embed style="position: absolute;left: -8px; top: -8px; margin: 0;height:497px;" src="news.html">-->
+
+                        <div style="height: 470px;overflow-y:auto; padding:10px;">
+                            <div style="float:left"> Fresh paint </div> <div style="float:right"> 9th November 2022 </div><br>
+                            <hr>
+                            Hello!
+                            <ul style="margin:0px; padding-left:25px;">
+                              <li>Redesign of the page</li>
+                              <li>Mobile support</li>
+                              <li>Reworked toolbar</li>
+                                  <ul style="margin:0px; padding-left:25px">
+                                    <li>Undo button</li>
+                                    <li>More colors</li>
+                                    <li>Left- and rightclick to select colors and draw</li>
+                                    <li>Experimental support for pressure touch input</li>
+                                    <li>Configurable hotkeys</li>
+                                  </ul>
+                              <li>Better player interactions/moderation</li>
+                                <ul style="margin:0px; padding-left:25px">
+                                    <li>Ability to kick and ban any player as a room owner</li>
+                                    <li>Votekick, Mute and Report naughty players</li>
+                                  </ul>
+                              <li>Invite your friends to public rooms</li>
+                              <li>More room settings</li>
+                                <ul style="margin:0px; padding-left:25px">
+                                    <li>Increased player count in custom rooms to 20</li>
+                                    <li>Set the amount of Words to choose from (1-5)</li>
+                                    <li>Set the amount of Hints or disable them completely</li>
+                                    <li>Word modes: Normal, Hidden and Combination</li>
+                                  </ul>
+                              <li>Updated a bunch of Languages</li>
+                                <ul style="margin:0px; padding-left:25px">
+                                    <li>Added lots of new words to English and German</li>
+                                    <li>Added Russian</li>
+                                    <li>Added Japanese</li>
+                                </ul>
+                              <li>A dozen new avatar options :)</li>
+                            </ul>
+                            Hope you enjoy it!
+                            Please let me know if you find any bugs, or if you have any suggestions!
+
+                            Thanks! - Mel
+                        </div>
+                    </div>
                 </div>
 
+
+                <div class="splashBottomRight">
+                    <h2>About</h2>
+                    <div class="splashMidBG">PiKCEL.io is a free online competitive strategy game.<br>
+
+                A normal game consists of a few rounds, where every round a player has to draw their chosen word and others have to guess it to gain points! <br>
+
+                Given a random number of 
+
+                The person with the most points at the end of the game, will then be crowned as the winner! Have fun!
+                </div>
+                </div>
+                <!------------------------------------------------>
 
 
                 <!----------- CONTENTS OF SPLASH PAGE-------------------->
                 <div class="splashWindow"> 
-                   <div class="splashContent">
-                        <h2 style="color:black;">Welcome to PiKCEL.io!</h2>
+                    <h2 style="color:black;">Welcome to PiKCEL.io!</h2>
+                    <div class="splashMidBG">
+                    <div class="splashContent">
+                        
                         <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
-                        <form autocomplete="off" action="javascript:setName();" method="get">
-                            <input class="splashInput" type="text" placeholder="What's your name?" name="pn" id="pn"><br>
-                            <hr>
-                            <input class="buttonStyle1" style="text-decoration: line-through;" type="submit" value="--Find a Game--">
-                            
-                        </form>
-                        <hr>
-                        <form action="javascript:createWaitRoom();" method="get">
-                            <input class="buttonStyle1" type="submit" value="Create Private Room">
-                        </form>
-                        <!-- OLD <form action="javascript:resetBoard();" method="get">
-                            <input type="submit" value="reset">
-                        </form> -->
-                            <hr>
-                        <form autocomplete="off" action="javascript:joinWaitRoom();" method="get">
-                            <input class="splashInput" type="text" placeholder="Room ID" name="customRoomID" id="customRoomID"><br>
-                            <input class="buttonStyle2" type="submit" value="Join Existing Room">
+                        <form autocomplete="off" action="javascript:aiTest();" method="get">
+                            <input class="splashInput" style ="padding-top:10px;" type="text" placeholder="What's your name?" name="pn" id="pn">
+                            <input class="buttonStyle1" style="width:48.5%; float:left;" type="submit" value="Find a Game!">
+                            <!--
+                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
+                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
+                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
+                            -->
                         </form>
 
+                        <form action="javascript:createWaitRoom();" method="get">
+                            <input class="buttonStyle1" style="width:48.5%; float:right;" type="submit" value="Create Private Room">
+                        </form>
+                        <br><br><br>
+                        <hr>
+
+                        <form autocomplete="off" action="javascript:joinWaitRoom();" method="get">
+                            <input class="splashInput" style="" type="text" placeholder="Room ID" name="customRoomID" id="customRoomID">
+                            <input class="buttonStyle2" style="" type="submit" value="Join Existing Room">
+                        </form>
 
                     </div>
-                    <div style="position:absolute; bottom:4px; right:4px">PiKCEL.io Alpha v1.0.1</div>
+                    </div>
+                    <div style="position:absolute; bottom:4px; right:4px; font-size:9px;">PiKCEL.io Alpha v1.0.1</div>
                 </div>
             </div>
 
@@ -78,7 +153,13 @@
                     <input class="inputText" type="text" name="msg" id="msg" placeholder="Send message"><br>
                 </form>
             </div>
-            
+
+            <!--------------GAME CONTENT------------------------------->
+            <div class= "gameOver" id="ga">
+                <form action="javascript:goBackToWait();" method="get">
+                    <input class="buttonStyle1" type="submit" value="Play Again">
+                </form>
+            </div>
             <div class= "chatWindow" id="cw"><div class="chatContent" id = "cww"></div></div>
         </div>
         
@@ -292,7 +373,7 @@
             pix.setInteractive()
             pix.on('pointerdown', (pointer)=>
             {
-                if(myTurn && checkAdj(this.x, this.y)){
+                if(!gameOver && myTurn && checkAdj(this.x, this.y)){
                     console.log(playerColor)
 
                     pix.setFillStyle(playerColor);
@@ -415,9 +496,11 @@
     {
         constructor(){
             super('Game');
+
             //this.create();
             gameScene = this;
             this.popUpGraphics = null;
+            this.winScreen = null;
         }
         preload ()
         {
@@ -555,6 +638,96 @@
            
         }
 
+        displayWinScreen(winnerName){
+            //Should write the player name and shit like that... Play again... That's it I think, player name and play again...
+            //Make a new graphics object..
+            if(this.winScreen != null){
+                this.winScreen.destroy();
+            }
+            this.winScreen = this.add.graphics();
+            //I can basically use the popup template..........
+            this.winScreen.fillStyle(0xFFFFFF,1);
+            this.winScreen.setDepth(100);
+
+            let pWidth = 450;
+            let pHeight = 250;
+
+            //Fuck the shaow for now
+            this.winScreen.fillStyle(0x000000,0.17);
+            this.winScreen.fillRoundedRect(-pWidth/2+shadowOffset,-pHeight/2+shadowOffset,pWidth,pHeight,6);
+
+            this.winScreen.fillStyle(0xFFFFFF,1);
+            this.winScreen.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
+
+            /*
+            if(this.nameText == null){
+                this.nameText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
+                this.nameText.setDepth(101);
+            }else{
+                this.nameText.setText(plrName+"\'s turn!")
+                this.nameText.alpha = 1;
+            }
+            */
+            
+            this.winScreen.x = 600;
+            this.winScreen.y = 400;
+            
+            //let nt = this.nameText;
+
+            const chain = this.tweens.chain({
+                //Also a target should be the text...
+                targets: this.winScreen,
+                tweens:[
+                {
+                    duration: 20,
+                    //scale: 1.025,
+                    scale: 1.1,
+
+                },
+                {
+                    duration: 20,
+                    scale:1
+                },
+                {
+                    duration: 750,
+                    alpha:1
+                },
+
+                //{
+                //    duration: 300,
+                //    alpha: 0
+                //}
+
+                ]
+
+            })
+            /*
+            const chain1 = this.tweens.chain({
+                //Also a target should be the text...
+                targets: this.nameText,
+                tweens:[
+                {
+                    duration: 790,
+                    alpha:1
+                },
+
+                {
+                    duration: 300,
+                    alpha: 0
+                }
+
+                ]
+
+            });*/
+        }
+
+        removeWinScreen(){
+            //Should only be called when win screen is active.
+            if(this.winScreen != null){
+                this.winScreen.destroy();
+            }
+        }
+
         newTurnGraphic(plrName){
 
             if(this.popUp != null)
@@ -644,6 +817,10 @@
             container.style.backgroundPositionX = bgX + "px";
             container.style.backgroundPositionY = bgY + "px";
         }
+        goToWait(){
+            this.scene.switch(menuScene);
+            waitRoomDisplay();
+        }
     }
 
 
@@ -651,6 +828,10 @@
     var frame = 0;
     class Menu extends Phaser.Scene
     {
+        constructor(){
+            super('Menu');
+            this.waitingText = null;
+        }
         preload ()
         {
             this.load.image('logo', 'images/logo.png');
@@ -666,7 +847,7 @@
             this.logo.x = 600;
             this.logo.y = 120;
 
-            this.waitingText = null;
+            
 
 
             //Logo animation
@@ -701,6 +882,7 @@
         }
 
         waitingUpdate(){
+
             if(this.waitingText != null){
                 if(this.waitingText.text == "Waiting"){
                     this.waitingText.text = "Waiting.";
@@ -734,9 +916,8 @@
 
             
             //===============================================================
-
+            //console.log('I should print after am I called??');
             //Draw text here ================================================
-            
             this.waitingText = this.add.text(608, 266, "Waiting").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
             //this.add.text(608, 581, "Server ID: 0000").setFontFamily('daydream').setFontSize(22).setColor('#000000').setOrigin(0.5, 0.5)
             
@@ -769,8 +950,8 @@
         }
 
         goToGame(){
-            console.log('testsfpak');
-            this.scene.start('Game');
+            console.log("Am I at least called first?")
+            this.scene.switch(gameScene);
         }
     }
 

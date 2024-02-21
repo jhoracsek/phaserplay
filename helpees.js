@@ -73,6 +73,19 @@ document.getElementById("cht").style.display = "none";
 document.getElementById("waitingWindow").style.display = "none";
 document.getElementById("waitingWinNames").style.display = "none";
 document.getElementById("plrCount").style.display = "none";
+document.getElementById("plrCount").style.display = "none";
+document.getElementById("ga").style.display = "none";
+
+function gameover(){
+	console.log('Poop')
+	document.getElementById("ga").style.display = "block";
+}
+
+function goBackToWait(){
+	//I need to emit something so all players transition back to the menu
+	socket.emit('go to wait', roomID);
+}
+
 function chatOn(){
 
 	//toggle id "cht" and "cw"
@@ -119,12 +132,19 @@ function waitRoomDisplay(){
 	var ww = document.getElementById("waitingWindow");
 	var wwn = document.getElementById("waitingWinNames");
 	var plrCount = document.getElementById("plrCount");
+	var playAgain = document.getElementById("ga");
+
+	cw.style.display = "none";
+	cht.style.display = "none";
 
 
 	splsh.style.display = "none";
+	playAgain.style.display = "none";
+
 	ww.style.display = "block";
 	wwn.style.display = "block";
 	plrCount.style.display = "block";
+	playAgain = "false";
 
 	menuScene.loadWaiting();
 }
@@ -153,11 +173,18 @@ function createWaitRoom(){
 	//Now we handle the rest of this once we receive confirmation...
 }
 
+function aiTest(){
+
+	//For now, basically create a test room
+	socket.emit("requestRoomIDAI");
+
+}
+
 function goToGame(){
 	
 	
 
-
+	console.log("I should be called... now I go to server...")
 	//WE ACTUALLY CAN'T CALL THIS HERE, WE NEED TO CALL IT FOR EVERYONE IN THE ROOM!
 	socket.emit("start game", roomID);
 	//menuScene.goToGame();
@@ -166,7 +193,9 @@ function goToGame(){
 }
 
 async function startGameForAll(){
+	gameOver = false;
 	menuScene.goToGame();
+	gameScene.removeWinScreen();
 	var cw = document.getElementById("cw");
 	var cht = document.getElementById("cht");
 	var splsh = document.getElementById("splsh");

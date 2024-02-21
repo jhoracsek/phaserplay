@@ -27,6 +27,51 @@ var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy"
 //Actually makes more sense for this to be ALL rooms. There is just a flag if it's private or not
 var rooms = new Array(10067);
 
+class PriorityQueue {
+  constructor() {
+    this.queue = [];
+  }
+
+  enqueue(element, priority) {
+    this.queue.push({ element, priority });
+    this.sortQueue();
+  }
+
+  dequeue() {
+    if (this.isEmpty()) {
+      return "Queue is empty";
+    }
+    return this.queue.shift().element;
+  }
+
+  front() {
+    if (this.isEmpty()) {
+      return "Queue is empty";
+    }
+    return this.queue[0].element;
+  }
+
+  isEmpty() {
+    return this.queue.length === 0;
+  }
+
+  get(index){
+    return this.queue[index].element;
+  }
+
+  length(){
+    return this.queue.length;
+  }
+
+  sortQueue() {
+    this.queue.sort((a, b) => b.priority - a.priority);
+  }
+}
+
+function priOffset(){
+  return 0.9 + Math.random() * 0.1;
+}
+
 class Room{
   constructor(roomID){
     this.roomID = roomID;
@@ -52,12 +97,16 @@ class Room{
     this.canJoin = true;
 
     this.clrMap = new Map();
+    this.isAi = [];
     this.hasLost = [];
 
     this.currentTurn = -1;
     this.gameStarted = false;
 
     this.colourList = [];
+
+    this.placed = new Array(4);
+
   }
 
   isFull(){
@@ -79,6 +128,8 @@ class Room{
     return false;
 
   }
+
+
 
 
   setBoardColor(){
@@ -198,6 +249,116 @@ function randInt(min, max) {
   return Math.floor(Math.random() * ((max+1) - min) ) + min;
 }
 
+
+function heuristic(val){
+  switch(val){
+    case 0:
+      return 0.3;
+    case 1:
+      return 0.4;
+    case 2:
+      return 0.5;
+    case 3:
+      return 0.6;
+    case 4:
+      return 0.7;
+    case 5:
+      return 0.8;
+    case 6:
+      return 0.9;
+    case 7:
+      return 1;
+    case 8:
+      return 1;
+    case 9:
+      return 0.9;
+    case 10:
+      return 0.8;
+    case 11:
+      return 0.7;
+    case 12:
+      return 0.6;
+    case 13:
+      return 0.5;
+    case 14:
+      return 0.4;
+    case 15:
+      return 0.3;
+    default:
+      return 0;
+  }
+}
+function getMaxIndex(arr) {
+    let max = -Infinity;
+    let maxIndices = [];
+    
+    // Find the maximum value and its indices
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > max) {
+            max = arr[i];
+            maxIndices = [i];
+        } else if (arr[i] === max) {
+            maxIndices.push(i);
+        }
+    }
+
+    // If there are ties, randomly select one of the tied indices
+    if (maxIndices.length > 1) {
+        return maxIndices[Math.floor(Math.random() * maxIndices.length)];
+    } else {
+        return maxIndices[0];
+    }
+}
+/*
+  This (in conjunction with the heurstic above) is basically the AI
+  Returns a valid tile that we can place based on
+  (1) Which tiles have already been placed
+  (2) The existing board
+  If no tiles can be placed, it should return null.
+  I don't even need to clr really, I should just look at all the tiles and place one randomly...
+*/
+function validTile(gameBoard, placed){
+  let n = placed.length();
+  //The "placed" list should be sorted so max priority tiles are first!!!
+  for(let i = 0; i < n; i++){
+
+    let x = placed.get(i)[0];
+    let y = placed.get(i)[1];
+    
+    //Just add them to the candidates then choose a random candidate...
+    //Yeah this is a dirty implementation... should be fixed
+    var candidates=[];
+    var pri=[];
+    if(x > 0 && (gameBoard[x-1][y] == '0xEFEFEF' || gameBoard[x-1][y] == '0xFFFFFF')){
+        candidates.push([x-1,y]);
+        pri.push(heuristic(x-1)+heuristic(y));
+    }
+    
+    if(x < 15 && (gameBoard[x+1][y] == '0xEFEFEF' || gameBoard[x+1][y] == '0xFFFFFF')){
+        candidates.push([x+1,y]);
+        pri.push(heuristic(x+1)+heuristic(y));
+    }
+    if(y > 0 && (gameBoard[x][y-1] == '0xEFEFEF' || gameBoard[x][y-1] == '0xFFFFFF')){
+        candidates.push([x,y-1]);
+        pri.push(heuristic(x)+heuristic(y-1));
+    }
+    if(y < 15 && (gameBoard[x][y+1] == '0xEFEFEF' || gameBoard[x][y+1] == '0xFFFFFF')){
+        candidates.push([x,y+1]);
+        pri.push(heuristic(x)+heuristic(y+1));
+    }
+    if(candidates.length > 0){
+      //choose a random candidate
+      //This should use some heuristic... (basically whichever tile brings them closest to center...)
+      const maxIndex = getMaxIndex(pri);
+      //const randomIndex = Math.floor(Math.random()*candidates.length);
+      return candidates[maxIndex];
+    }
+  }
+  return null;
+}
+
+
+
 function getRandNum(){
   var rand = Math.random();
 
@@ -258,6 +419,54 @@ setBoardColor();
 
 //===================================================================
 
+
+//AI FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+//Poop!
+//What arguments do I need????
+//I need somme bullshit
+function aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace){
+  var cell = roomObject.colourList[nextTurn];
+
+  var z = 0;
+  
+  function timedLoop(){
+    //This is a single iteration
+    if(z < numICanPlace){
+      var tile = validTile(roomObject.board, roomObject.placed[nextTurn]);
+      console.log(tile);
+      if(tile != null){ 
+        roomObject.placed[nextTurn].enqueue(tile, (heuristic(tile[0])+heuristic(tile[1]))*priOffset());
+        roomObject.board[tile[0]][tile[1]] = cell;
+
+        io.to(plrRoomID).emit('board update', cell, tile[0],tile[1]);
+      }
+      z++;
+    }else{
+      //Loop is over so end it.
+      clearInterval(interval);
+
+      numICanPlace = getRandNum();
+      for(let i = 0; i < numPlrs; i++){
+        let nextPotentialTurn =(nextTurn+1+i)%numPlrs; 
+        if (roomObject.hasLost[nextPotentialTurn] == false){
+          nextTurn = nextPotentialTurn;
+          break;
+        }
+      }
+      roomObject.currentTurn = nextTurn;
+      io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
+
+    }
+  }
+  const interval = setInterval(timedLoop, 500);
+  
+}
+
+///
+
+
+
 app.get('/', (req, res)=>{
 	res.sendFile(__dirname + '/index.html');
 });
@@ -308,6 +517,15 @@ io.on('connection', (socket) => {
 
   });
 
+  socket.on("requestRoomIDAI", ()=>{
+    //this is a socket.emit because you're just sending this back to the guy...
+    
+    //Create unique room id.
+    let roomID = generateNewRoom();
+    socket.emit("sendRoomIDAI", (roomID));
+
+  });
+
   socket.on("connectToRoom", (plrRoomID, myName)=>{
     //So here we have both the players roomID and their socket
     //Need to get room object...
@@ -334,12 +552,87 @@ io.on('connection', (socket) => {
     roomObject.playerName.push(tempName);
     roomObject.ogNames.push(tempName);
 
-    io.to(plrRoomID).emit("board init", roomObject.board);
+    //io.to(plrRoomID).emit("board init", roomObject.board);
 
     
 
-    roomObject.clrMap.set(socket.id, plrColour)
+    roomObject.clrMap.set(socket.id, plrColour);
+    roomObject.isAi.push(false);
     roomObject.hasLost.push(false);
+
+    io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
+
+    io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);
+
+
+    //Needs tp ja pahppen befre this one
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    //===================================================================
+  });
+
+
+  socket.on("connectToRoomAI", (plrRoomID, myName)=>{
+    //So here we have both the players roomID and their socket
+    //Need to get room object...
+    socket.join(plrRoomID);
+
+    plrMap.set(socket.id, plrRoomID);
+
+
+
+    let roomObject = getRoomObj(plrRoomID);
+
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+
+    var plrColour = getRandomColor();
+    roomObject.playerList.push(socket.id);
+    roomObject.ogList.push(socket.id);
+    roomObject.colourList.push(plrColour);
+
+    var tempName = "";
+    if(myName == ""){
+      tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    }else{tempName=myName;}
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+
+    //io.to(plrRoomID).emit("board init", roomObject.board);
+
+    
+
+    roomObject.clrMap.set(socket.id, plrColour);
+    roomObject.isAi.push(false);
+    roomObject.hasLost.push(false);
+
+
+    //NOW ADD AN AI CHARACTER JUST 1 =================================================================
+
+
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+
+    var aiColour = getRandomColor();
+    roomObject.playerList.push("AI");
+    roomObject.ogList.push("AI");
+    roomObject.colourList.push(aiColour);
+
+    var tempName = "";
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+
+    //io.to(plrRoomID).emit("board init", roomObject.board);
+
+    
+
+    roomObject.clrMap.set("AI", aiColour);
+    roomObject.isAi.push(true);
+
+    roomObject.hasLost.push(false);
+
+    // ================================================================================================
 
     io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
 
@@ -397,9 +690,18 @@ io.on('connection', (socket) => {
     let roomObject = getRoomObj(plrRoomID);
     roomObject.gameStarted = true;
 
+    roomObject.setBoardColor();
+
     if(false){//DISBLED TEMP FOR TESTroomObject.numOfPlayers == 1){
       socket.emit("badRequest", "Need more than 1 player!");
     }else{
+      
+      //RESET BOARD IN CASE OF STARTING A NEW GAME
+      io.to(plrRoomID).emit("board init", roomObject.board);
+      let n = roomObject.hasLost.length;
+      for(let i = 0; i < n; i++)
+        roomObject.hasLost[i] = false;
+
       io.to(plrRoomID).emit('start game', roomObject.playerName);
       roomObject.canJoin = false;
       //Now the game has started!!!!
@@ -417,14 +719,18 @@ io.on('connection', (socket) => {
         roomObject.board[x][y]=clrToDraw;
         io.to(plrRoomID).emit('board update', clrToDraw, x,y);
         io.to(plrRoomID).emit('assign num', i, roomObject.playerList[i], clrToDraw);
+
+        if(roomObject.isAi[i]){
+          //If it's an AI generate it's "placed" thing
+          roomObject.placed[i] = new PriorityQueue();
+          roomObject.placed[i].enqueue([x,y], (heuristic(x)+heuristic(y))*priOffset() );
+        }
       }
       //For now, the number a player is allowed to place is just 5. Going forward it will be random.
 
       //Maybe just define your own distribution function.
       io.to(plrRoomID).emit('new turn', 0,roomObject.playerName[0],getRandNum());
       roomObject.currentTurn = 0;
-      //Something like, socket.emit('new turn')
-      // No you have to wait until everyone sends confirmation that they got their turn.
     }
   });
 
@@ -466,15 +772,51 @@ io.on('connection', (socket) => {
     //let nextTurn = (plrNum+1)%numPlrs;
     //CHECK THE WIN CONDITION!!!!!!!!!! SHOULD BE A FUNCTION OF THE CLASS!!!!!!!!!!!!!!!!!!!!!
 
-    console.log(roomObject.checkWinCondition());
+    //console.log(roomObject.checkWinCondition());
     //So something like
     
     if(roomObject.checkWinCondition()){
       io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
+
+      //Maybe also pass the winning players name here??
       io.to(plrRoomID).emit('game over');
     }else{
-      console.log("Check?????????????????")
-      io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
+      var numICanPlace = getRandNum();
+      io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
+
+
+      //Here we want to check if the player is a an AIIIIIIIIIIIIIIIIIIII
+      if(roomObject.isAi[nextTurn]){
+        aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace)
+        //Poop!
+        /*
+        var cell = roomObject.colourList[nextTurn];
+        for(let z = 0; z < numICanPlace; z++){
+          //Need to basically emmit a faux turn at weird intervals...
+          var tile = validTile(roomObject.board, roomObject.placed[nextTurn]);
+          console.log(tile);
+          if(tile == null)
+            break;
+          roomObject.placed[nextTurn].push(tile);
+          roomObject.board[tile[0]][tile[1]] = cell;
+          io.to(plrRoomID).emit('board update', cell, tile[0],tile[1]);
+        }
+
+
+        //NOW EMIT THE NEXT TURN!!!!
+        numICanPlace = getRandNum();
+        for(let i = 0; i < numPlrs; i++){
+          let nextPotentialTurn =(nextTurn+1+i)%numPlrs; 
+          if (roomObject.hasLost[nextPotentialTurn] == false){
+            nextTurn = nextPotentialTurn;
+            break;
+          }
+        }
+        roomObject.currentTurn = nextTurn;
+        io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
+        */
+        //Old poop!
+      }
     }
 
     
@@ -485,7 +827,11 @@ io.on('connection', (socket) => {
 
   
 
-
+  socket.on('go to wait', (plrRoomID) =>{
+    let roomObject = getRoomObj(plrRoomID);
+    roomObject.canJoin = true;
+    io.to(plrRoomID).emit('go to wait');
+  });
 
 
   // PLAYER DISCONNECT =================================================

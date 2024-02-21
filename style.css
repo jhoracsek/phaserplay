@@ -3,6 +3,18 @@
     src:  url("res/Vanilla Caramel.otf");
 }
 
+hr{ 
+  
+     
+}
+
+.vhr{
+    border:         none;
+    border-left:    1px solid hsla(200, 10%, 50%,100);
+    height:         100vh;
+    width:          1px;    
+}
+
 body {
     /*font: normal 13px daydream, Verdana, Arial, sans-serif;*/
     font-family: 'daydream';
@@ -18,63 +30,124 @@ body {
 }
 .splashLeft{
     position:  absolute;
-    width: 250px;
+    width: 273px;
     height: 576px;
-    left: 31px;
+    left: 84px;
     top: 170px;
     background-color: #f7f7f7;
     border-radius: 6px;
     box-shadow:  6px 6px rgba(0, 0, 0, 0.17);
-    background-image: url("images/splashbg.png");
+    /*background-image: url("images/splashbg.png");*/
     background-position: 25% 75%;
 }
+
+.splashLeftContent{
+    position: absolute;
+    left: 16px;
+    width: 241px;
+    top: 71px;
+    /*height: 100px;*/
+    bottom: 16px;
+    border-radius: 6px;
+    /*background-color: #e6e6e6;*/
+    background-color: #e1e1e1;
+}
+
+.splashRightContent{
+    position: absolute;
+    left: 16px;
+    width: 241px;
+    top: 71px;
+    height: 489px;
+    
+    /*bottom: 16px;*/
+    border-radius: 6px;
+    background-color: #e1e1e1;
+   
+
+    text-align: left;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+    word-wrap: break-word;
+}
+
 .splashTopRight{
     position:  absolute;
-    width: 250px;
-    height: 273px;
-    left: 919px;
+    width: 273px;
+    height: 576px;
+    /*left: 919px;*/
+    right: 84px;
     top: 170px;
     background-color: #f7f7f7;
     border-radius: 6px;
     box-shadow:  6px 6px rgba(0, 0, 0, 0.17);
-    background-position: 25% 75%;
-    background-image: url("images/splashbg.png");
+    /*background-image: url("images/splashbg.png");*/
 }
 .splashBottomRight{
+    /*
+    OLD!!!
     position:  absolute;
-    width: 250px;
+    width: 273px;
     height: 273px;
-    left: 919px;
+    /*left: 919px;
+    right: 84px;
     top: 473px;
+    */
+
+    position:  absolute;
+    width: 424px;
+    /*height: 576px;*/
+    height: 217px;
+    /*left: 312px;*/
+    left: 388px;
+    bottom: 54px;
+
+
     background-color: #f7f7f7;
     border-radius: 6px;
     box-shadow:  6px 6px rgba(0, 0, 0, 0.17);
-    background-image: url("images/splashbg.png");
+    /*background-image: url("images/splashbg.png");*/
 }
 
 .splashWindow{
     position:  absolute;
-    width: 576px;
-    height: 576px;
-    left: 312px;
+    width: 424px;
+    /*height: 576px;*/
+    height: 328px;
+    /*left: 312px;*/
+    left: 388px;
     top: 170px;
     background-color: #f7f7f7;
     border-radius: 6px;
     box-shadow:  6px 6px rgba(0, 0, 0, 0.17);
-    background-image: url("images/splashbg.png");
+    /*background-image: url("images/splashbg.png");*/
+}
+
+.splashMidBG{
+    position: absolute;
+    right: 16px;
+    top: 71px;
+    left: 16px;
+    bottom: 16px;
+    border-radius: 6px;
+    background-color: #e1e1e1;
 }
 
 .splashContent{
-    position: absolute;
-    left: 50%;
+    position: relative;
+    
+    /*left: 50%;
     top: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    border-radius: 6px;
-    padding:  15px 50px 40px 50px;
-    background-color: rgba(150,150,175,0.8);
-    width: 208px;
-    height: 410px;
+    */
+    
+    /*padding:  15px 50px 40px 50px;*/
+    /*background-color: rgba(150,150,175,0.8);*/
+    width: 370px;
+    /*height: 410px;*/
 }
 
 .splashInput{
@@ -94,7 +167,7 @@ body {
     background-color: rgb(131,209,107); 
     border: none;
     color: white;
-    padding: 16px 32px;
+    padding: 16px 0px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -161,6 +234,15 @@ body {
     width: 250px;
     left: 918px;
     top: 700px;
+}
+
+.gameOver{
+    position: absolute;
+    width: 250px;
+    /* It's 1200x800 */
+    /* So mid point is 600, 400*/
+    left: 475px;
+    top: 400px;
 }
 
 

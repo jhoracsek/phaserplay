@@ -30,6 +30,7 @@ socket.on('board update', (cell, i,j)=>{
     pixStore[i][j].updateColor(board[i][j]);
     numLeft--;
     if(gameScene.numText!=null){
+        console.log("HEREREREHERHEHREHEHE:" + gameScene.numText);
         gameScene.numText.setText(numLeft+"/"+numAllowedToPlace);
     }
 });
@@ -129,6 +130,15 @@ socket.on('sendRoomID', (rmid) => {
     socket.emit('connectToRoom', rmid, myName);
 });
 
+socket.on('sendRoomIDAI', (rmid) => {
+    gotServerConfirmation();
+    roomID = rmid;
+    document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
+    let myName = document.getElementById("pn").value;
+    //We want to say like: "hey we are in the room!"
+    socket.emit('connectToRoomAI', rmid, myName);
+});
+
 socket.on('badRequest', (msg) => {
     alert(msg);
     //This is where I should display some sort of message
@@ -163,8 +173,15 @@ socket.on('tick', ()=>{
 });
 
 socket.on('game over', ()=>{
+    gameScene.displayWinScreen("Poop")
     gameOver = true;
+    gameover();
 })
+
+socket.on('go to wait', ()=>{
+    //We need to go back to the wait screen...
+    gameScene.goToWait()
+});
 
 //This is where we handle someone getting a turn.
 socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
