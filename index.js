@@ -69,7 +69,8 @@ class PriorityQueue {
 }
 
 function priOffset(){
-  return 0.9 + Math.random() * 0.1;
+  //return 0.9 + Math.random() * 0.1;
+  return 1;
 }
 
 class Room{
@@ -129,7 +130,20 @@ class Room{
 
   }
 
+  /*
+    Here we store all the custom "maps". 
+    The function will return the locations for a random map.
+    One day, I would love user created maps.
+  */
+  getMap(){
+    //MAP 1
+    let map1 = [ [] ]
 
+    //MAP 2
+    let map2 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13] ];
+    let map3 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13], [7,7],[7,8],[8,7],[8,8] ];
+    return map3;
+  }
 
 
   setBoardColor(){
@@ -142,6 +156,11 @@ class Room{
         }
       }
     }
+    //Now apply the map...
+    let map = this.getMap();
+    let n = map.length;
+    for(let i = 0; i < n; i++)
+      this.board[map[i][0]][map[i][1]] = '0xFF0000';
   }
   //socket.id is mapped to player colour
   getPlayerColour(sock){
@@ -265,13 +284,13 @@ function heuristic(val){
     case 5:
       return 0.8;
     case 6:
-      return 0.9;
+      return 1.0;
     case 7:
-      return 1;
+      return 1.2;
     case 8:
-      return 1;
+      return 1.2;
     case 9:
-      return 0.9;
+      return 1.0;
     case 10:
       return 0.8;
     case 11:
@@ -331,20 +350,20 @@ function validTile(gameBoard, placed){
     var pri=[];
     if(x > 0 && (gameBoard[x-1][y] == '0xEFEFEF' || gameBoard[x-1][y] == '0xFFFFFF')){
         candidates.push([x-1,y]);
-        pri.push(heuristic(x-1)+heuristic(y));
+        pri.push(heuristic(x-1)*heuristic(y));
     }
     
     if(x < 15 && (gameBoard[x+1][y] == '0xEFEFEF' || gameBoard[x+1][y] == '0xFFFFFF')){
         candidates.push([x+1,y]);
-        pri.push(heuristic(x+1)+heuristic(y));
+        pri.push(heuristic(x+1)*heuristic(y));
     }
     if(y > 0 && (gameBoard[x][y-1] == '0xEFEFEF' || gameBoard[x][y-1] == '0xFFFFFF')){
         candidates.push([x,y-1]);
-        pri.push(heuristic(x)+heuristic(y-1));
+        pri.push(heuristic(x)*heuristic(y-1));
     }
     if(y < 15 && (gameBoard[x][y+1] == '0xEFEFEF' || gameBoard[x][y+1] == '0xFFFFFF')){
         candidates.push([x,y+1]);
-        pri.push(heuristic(x)+heuristic(y+1));
+        pri.push(heuristic(x)*heuristic(y+1));
     }
     if(candidates.length > 0){
       //choose a random candidate
@@ -436,10 +455,13 @@ function aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace){
       var tile = validTile(roomObject.board, roomObject.placed[nextTurn]);
       console.log(tile);
       if(tile != null){ 
-        roomObject.placed[nextTurn].enqueue(tile, (heuristic(tile[0])+heuristic(tile[1]))*priOffset());
+        roomObject.placed[nextTurn].enqueue(tile, (heuristic(tile[0])*heuristic(tile[1]))*priOffset());
         roomObject.board[tile[0]][tile[1]] = cell;
 
         io.to(plrRoomID).emit('board update', cell, tile[0],tile[1]);
+      }else{
+        //I (the AI) should loose here. I should emit that loose update thing lol!
+
       }
       z++;
     }else{
@@ -723,7 +745,7 @@ io.on('connection', (socket) => {
         if(roomObject.isAi[i]){
           //If it's an AI generate it's "placed" thing
           roomObject.placed[i] = new PriorityQueue();
-          roomObject.placed[i].enqueue([x,y], (heuristic(x)+heuristic(y))*priOffset() );
+          roomObject.placed[i].enqueue([x,y], (heuristic(x)*heuristic(y))*priOffset() );
         }
       }
       //For now, the number a player is allowed to place is just 5. Going forward it will be random.
@@ -788,33 +810,7 @@ io.on('connection', (socket) => {
       //Here we want to check if the player is a an AIIIIIIIIIIIIIIIIIIII
       if(roomObject.isAi[nextTurn]){
         aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace)
-        //Poop!
-        /*
-        var cell = roomObject.colourList[nextTurn];
-        for(let z = 0; z < numICanPlace; z++){
-          //Need to basically emmit a faux turn at weird intervals...
-          var tile = validTile(roomObject.board, roomObject.placed[nextTurn]);
-          console.log(tile);
-          if(tile == null)
-            break;
-          roomObject.placed[nextTurn].push(tile);
-          roomObject.board[tile[0]][tile[1]] = cell;
-          io.to(plrRoomID).emit('board update', cell, tile[0],tile[1]);
-        }
-
-
-        //NOW EMIT THE NEXT TURN!!!!
-        numICanPlace = getRandNum();
-        for(let i = 0; i < numPlrs; i++){
-          let nextPotentialTurn =(nextTurn+1+i)%numPlrs; 
-          if (roomObject.hasLost[nextPotentialTurn] == false){
-            nextTurn = nextPotentialTurn;
-            break;
-          }
-        }
-        roomObject.currentTurn = nextTurn;
-        io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
-        */
+        
         //Old poop!
       }
     }
