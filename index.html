@@ -32,6 +32,8 @@
                         <img src="images/example2.gif" style="width:125px; height:100px;">
                         <div style="padding:10px;">
                             If your timer runs out, you lose!
+                            <br><br>
+                            <img src="images/numbers.gif">
                         </div>
                         <!-- BIG INTERVAL TIMER HERE!!! -->
                         
@@ -47,7 +49,7 @@
                             Hi, and welcome to the PiKCEL Alpha!<br><br> A few things...
                             <ul style="margin:0px; padding-left:12px;">
                               <li>The game is still in very early Alpha, so there may be many (potentially game-breaking) bugs. Please report them if you feel inclined.</li>
-                              <li>Any features or gameplay changes you think would make a good addition are appreaciated! Obviously I reserve the right to disagree.</li>
+                              <li>Any features, gameplay or UI changes you think would make a good addition are appreaciated! Obviously I reserve the right to disagree.</li>
                               <li>If you're interested in contributing to the development (programming, testing) please send me an email.</li>
                               <!--
                               <li>Mobile support</li>
@@ -106,15 +108,15 @@
                     <div class="splashContent">
                         
                         <!--https://stackoverflow.com/questions/18022019/how-to-transfer-data-from-an-html-form-to-a-javascript-function-->
-                        <form autocomplete="off" action="javascript:aiTest();" method="get">
-                            <input class="splashInput" style ="padding-top:10px;" type="text" placeholder="What's your name?" name="pn" id="pn">
-                            <input class="buttonStyle1" style="width:48.5%; float:left;" type="submit" value="Find a Game!">
-                            <!--
-                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
-                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
-                            <input class="buttonStyle1" style="width:31%" type="submit" value="Play">
-                            -->
-                        </form>
+                        <input autocomplete="off" class="splashInput" style ="padding-top:10px;" type="text" placeholder="What's your name?" name="pn" id="pn">
+                        <div class="buttonContainer" style="width:48.5%; height: 52px; float:left;">
+                            
+                            
+                                <form action="javascript:twoPlayers();" method="get"> <input class="buttonItem" style="background-image: url('images/icons2.png');float: left; width:33.333%; border-right:2px solid #7fcb6e;" type="submit" value="" ></form>
+                                <form  action="javascript:threePlayers();" method="get"><input class="buttonItem" style="background-image: url('images/icons3.png');float:left; width:33.333%; border-right:2px solid #7fcb6e;" type="submit" value=""></form>
+                                <form action="javascript:fourPlayers();" method="get"><input class="buttonItem" style="background-image: url('images/icons4.png');float:left; width:33.333%;" type="submit" value="" ></form>
+                            
+                        </div>
 
                         <form action="javascript:createWaitRoom();" method="get">
                             <input class="buttonStyle1" style="width:48.5%; float:right;" type="submit" value="Create Private Room">
@@ -500,6 +502,7 @@
             gameScene = this;
             this.popUpGraphics = null;
             this.winScreen = null;
+            this.winText = null;
         }
         preload ()
         {
@@ -637,7 +640,7 @@
            
         }
 
-        displayWinScreen(winnerName){
+        displayWinScreen(winnerName, clr){
             //Should write the player name and shit like that... Play again... That's it I think, player name and play again...
             //Make a new graphics object..
             if(this.winScreen != null){
@@ -646,17 +649,28 @@
             this.winScreen = this.add.graphics();
             //I can basically use the popup template..........
             this.winScreen.fillStyle(0xFFFFFF,1);
-            this.winScreen.setDepth(100);
+
+            this.winScreen.lineStyle(1,0x6b4ea2, 1);
+            //Poop!
+            this.winScreen.setDepth(200);
+
+            //this.winText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
+            //Add a stroke here!
+            this.winText = this.add.text(608, 360, winnerName + " has won!").setFontFamily('daydream').setFontSize(37).setColor(convertColorCode(clr)).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 7);
+            //this.winText = this.add.text(608, 360, winnerName + " has won!").setFontFamily('daydream').setFontSize(27).setColor(convertColorCode(clr)).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
+            this.winText.setDepth(201);
 
             let pWidth = 450;
-            let pHeight = 250;
+            let pHeight = 200;
 
             //Fuck the shaow for now
             this.winScreen.fillStyle(0x000000,0.17);
             this.winScreen.fillRoundedRect(-pWidth/2+shadowOffset,-pHeight/2+shadowOffset,pWidth,pHeight,6);
 
+
             this.winScreen.fillStyle(0xFFFFFF,1);
             this.winScreen.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
+            this.winScreen.strokeRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
 
             /*
             if(this.nameText == null){
@@ -667,9 +681,11 @@
                 this.nameText.alpha = 1;
             }
             */
-            
+
             this.winScreen.x = 600;
             this.winScreen.y = 400;
+
+
             
             //let nt = this.nameText;
 
@@ -725,6 +741,9 @@
             if(this.winScreen != null){
                 this.winScreen.destroy();
             }
+            if(this.winText != null){
+                this.winText.destroy();
+            }
         }
 
         newTurnGraphic(plrName){
@@ -734,6 +753,7 @@
             this.popUp = this.add.graphics();
             this.popUp.setDepth(100);
             this.popUp.fillStyle(0xFFFFFF);
+            this.popUp.lineStyle(1,0x6b4ea2, 1);
             //What is canvas size? 1200 x 800, So mid is 600 x 400
             let pWidth = 450;
             let pHeight = 100;
@@ -744,6 +764,8 @@
 
             this.popUp.fillStyle(0xFFFFFF,1);
             this.popUp.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
+
+            this.popUp.strokeRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
 
 
             //WHERE IS THE FUCKING TEC
@@ -817,6 +839,7 @@
             container.style.backgroundPositionY = bgY + "px";
         }
         goToWait(){
+            numPlaced = 0;
             this.scene.switch(menuScene);
             waitRoomDisplay();
         }

@@ -130,13 +130,31 @@ socket.on('sendRoomID', (rmid) => {
     socket.emit('connectToRoom', rmid, myName);
 });
 
-socket.on('sendRoomIDAI', (rmid) => {
+socket.on('sendRoomID2', (rmid) => {
     gotServerConfirmation();
     roomID = rmid;
     document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
     let myName = document.getElementById("pn").value;
     //We want to say like: "hey we are in the room!"
-    socket.emit('connectToRoomAI', rmid, myName);
+    socket.emit('connectToRoom2', rmid, myName);
+});
+
+socket.on('sendRoomID3', (rmid) => {
+    gotServerConfirmation();
+    roomID = rmid;
+    document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
+    let myName = document.getElementById("pn").value;
+    //We want to say like: "hey we are in the room!"
+    socket.emit('connectToRoom3', rmid, myName);
+});
+
+socket.on('sendRoomID4', (rmid) => {
+    gotServerConfirmation();
+    roomID = rmid;
+    document.getElementById("rmid").innerHTML = "Room ID: <u>" + rmid+"</u>";
+    let myName = document.getElementById("pn").value;
+    //We want to say like: "hey we are in the room!"
+    socket.emit('connectToRoom4', rmid, myName);
 });
 
 socket.on('badRequest', (msg) => {
@@ -172,8 +190,8 @@ socket.on('tick', ()=>{
     }
 });
 
-socket.on('game over', ()=>{
-    gameScene.displayWinScreen("Poop")
+socket.on('game over', (winner, clr)=>{
+    gameScene.displayWinScreen(winner, clr)
     gameOver = true;
     gameover();
 })

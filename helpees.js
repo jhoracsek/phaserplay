@@ -173,10 +173,24 @@ function createWaitRoom(){
 	//Now we handle the rest of this once we receive confirmation...
 }
 
-function aiTest(){
+function twoPlayers(){
 
 	//For now, basically create a test room
-	socket.emit("requestRoomIDAI");
+	socket.emit("requestRoomID2");
+
+}
+
+function threePlayers(){
+
+	//For now, basically create a test room
+	socket.emit("requestRoomID3");
+
+}
+
+function fourPlayers(){
+
+	//For now, basically create a test room
+	socket.emit("requestRoomID4");
 
 }
 

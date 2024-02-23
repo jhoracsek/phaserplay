@@ -9,22 +9,11 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-
-
-//THESE SHOULD ALL BE ABLE TO BE REMOVED....
-//var playerList = [];
-//var playerName = [];
-
 var numOfPlayers = 0;
 const plrMap = new Map();
 var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
 
-
-
-// ROOM SETUP STUFF =================================================
 //This seems sufficient, I doubt there would ever be larger than 10067 concurrent servers...
-//These are also specifically PRIVATE ROOMS... There should be another array for public rooms.
-//Actually makes more sense for this to be ALL rooms. There is just a flag if it's private or not
 var rooms = new Array(10067);
 
 class PriorityQueue {
@@ -69,8 +58,8 @@ class PriorityQueue {
 }
 
 function priOffset(){
-  //return 0.9 + Math.random() * 0.1;
-  return 1;
+  return 0.5 + Math.random() * 0.5;
+  //return 1;
 }
 
 class Room{
@@ -80,10 +69,12 @@ class Room{
     this.ogList = [];
     this.ogNames = [];
     this.playerName = [];
+
     //Number of players actively connected
     this.numOfPlayers = 0;
     //Number of players connected at game start
     this.numPlayersAtStart = 0;
+    
     this.board = new Array(16);
 
     for (let i = 0; i < 16; i++){
@@ -123,11 +114,22 @@ class Room{
       if(!this.hasLost[i])
         count++
     }
+
     if(count <= 1){
       return true;
     }
+
     return false;
 
+  }
+
+  getWinner(){
+    let n = this.hasLost.length;
+    for(let i = 0; i < n; i++){
+      if(!this.hasLost[i])
+        return [this.playerName[i], this.colourList[i]];
+    }
+    return null;
   }
 
   /*
@@ -142,7 +144,8 @@ class Room{
     //MAP 2
     let map2 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13] ];
     let map3 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13], [7,7],[7,8],[8,7],[8,8] ];
-    return map3;
+    let map4 = [ [0,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7], [8,8],[9,8],[10,8],[11,8],[12,8],[13,8],[15,8]  ];
+    return map4;
   }
 
 
@@ -162,6 +165,7 @@ class Room{
     for(let i = 0; i < n; i++)
       this.board[map[i][0]][map[i][1]] = '0xFF0000';
   }
+
   //socket.id is mapped to player colour
   getPlayerColour(sock){
     return this.clrMap.get(sock);
@@ -185,9 +189,6 @@ function getRoomObj(roomID){
   return null;
 }
 
-/*
-  
-*/
 function generateNewRoom(){
   var unique = true;
   var retRoomID = "";
@@ -197,7 +198,6 @@ function generateNewRoom(){
     let ind = hash(roomID);
     //We need to make sure rooms[ind] is an array
     if(rooms[ind] == null){
-      //Wow we love this idea
       rooms[ind] = [new Room(roomID)]
     }else{
       //This is the situation where either:
@@ -268,6 +268,39 @@ function randInt(min, max) {
   return Math.floor(Math.random() * ((max+1) - min) ) + min;
 }
 
+function adjHeur(gameBoard, x,y,clr){
+  //clr is my color. So if you see a different color that's good.
+  var adj = 0;
+  if (x > 0){
+    if(gameBoard[x-1][y] != '0xEFEFEF' && gameBoard[x-1][y] != '0xFFFFFF' && gameBoard[x-1][y] != '0xFF0000' && gameBoard[x-1][y] != clr)
+      adj++;
+  }
+  if(x < 15){
+    if(gameBoard[x+1][y] != '0xEFEFEF' && gameBoard[x+1][y] != '0xFFFFFF' && gameBoard[x+1][y] != '0xFF0000'&& gameBoard[x+1][y] != clr)
+      adj++; 
+  }
+  if(y > 0){
+    if(gameBoard[x][y-1] != '0xEFEFEF' && gameBoard[x][y-1] != '0xFFFFFF' && gameBoard[x][y-1] != '0xFF0000'&& gameBoard[x][y-1] != clr)
+      adj++; 
+  }
+
+  if(y < 15){
+    if(gameBoard[x][y+1] != '0xEFEFEF' && gameBoard[x][y+1] != '0xFFFFFF' && gameBoard[x][y+1] != '0xFF0000'&& gameBoard[x][y+1] != clr)
+      adj++; 
+  }
+
+  switch(adj){
+    case 1:
+      return 4;
+    case 2:
+      return 3;
+    case 3:
+      return 2;
+    default:
+      return 0;
+  }
+
+}
 
 function heuristic(val){
   switch(val){
@@ -328,48 +361,44 @@ function getMaxIndex(arr) {
         return maxIndices[0];
     }
 }
+
 /*
   This (in conjunction with the heurstic above) is basically the AI
   Returns a valid tile that we can place based on
   (1) Which tiles have already been placed
   (2) The existing board
   If no tiles can be placed, it should return null.
-  I don't even need to clr really, I should just look at all the tiles and place one randomly...
 */
-function validTile(gameBoard, placed){
+function validTile(gameBoard, placed, clr){
   let n = placed.length();
-  //The "placed" list should be sorted so max priority tiles are first!!!
+  //The "placed" list should be sorted so max priority tiles are first.
   for(let i = 0; i < n; i++){
-
     let x = placed.get(i)[0];
     let y = placed.get(i)[1];
-    
-    //Just add them to the candidates then choose a random candidate...
+    //Just add them to the candidates then choose a random candidate.
     //Yeah this is a dirty implementation... should be fixed
     var candidates=[];
     var pri=[];
     if(x > 0 && (gameBoard[x-1][y] == '0xEFEFEF' || gameBoard[x-1][y] == '0xFFFFFF')){
         candidates.push([x-1,y]);
-        pri.push(heuristic(x-1)*heuristic(y));
+        pri.push(   (heuristic(x-1)*heuristic(y) + adjHeur(gameBoard, x-1, y, clr))*priOffset()   );
     }
     
     if(x < 15 && (gameBoard[x+1][y] == '0xEFEFEF' || gameBoard[x+1][y] == '0xFFFFFF')){
         candidates.push([x+1,y]);
-        pri.push(heuristic(x+1)*heuristic(y));
+        pri.push(   (heuristic(x+1)*heuristic(y)+ adjHeur(gameBoard, x+1, y, clr))*priOffset()   );
     }
     if(y > 0 && (gameBoard[x][y-1] == '0xEFEFEF' || gameBoard[x][y-1] == '0xFFFFFF')){
         candidates.push([x,y-1]);
-        pri.push(heuristic(x)*heuristic(y-1));
+        pri.push(   (heuristic(x)*heuristic(y-1)+ adjHeur(gameBoard, x, y-1, clr))*priOffset()   );
     }
     if(y < 15 && (gameBoard[x][y+1] == '0xEFEFEF' || gameBoard[x][y+1] == '0xFFFFFF')){
         candidates.push([x,y+1]);
-        pri.push(heuristic(x)*heuristic(y+1));
+        pri.push(   (heuristic(x)*heuristic(y+1)+ adjHeur(gameBoard, x, y+1, clr))*priOffset()   );
     }
     if(candidates.length > 0){
       //choose a random candidate
-      //This should use some heuristic... (basically whichever tile brings them closest to center...)
       const maxIndex = getMaxIndex(pri);
-      //const randomIndex = Math.floor(Math.random()*candidates.length);
       return candidates[maxIndex];
     }
   }
@@ -439,29 +468,48 @@ setBoardColor();
 //===================================================================
 
 
-//AI FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-//Poop!
-//What arguments do I need????
-//I need somme bullshit
+/*
+  Handles AI's moves.
+*/
 function aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace){
   var cell = roomObject.colourList[nextTurn];
-
   var z = 0;
   
   function timedLoop(){
-    //This is a single iteration
     if(z < numICanPlace){
-      var tile = validTile(roomObject.board, roomObject.placed[nextTurn]);
-      console.log(tile);
+      var tile = validTile(roomObject.board, roomObject.placed[nextTurn], roomObject.colourList[nextTurn]);
       if(tile != null){ 
-        roomObject.placed[nextTurn].enqueue(tile, (heuristic(tile[0])*heuristic(tile[1]))*priOffset());
+
+        roomObject.placed[nextTurn].enqueue(tile, (heuristic(tile[0])*heuristic(tile[1]) + adjHeur(roomObject.board, tile[0], tile[1], roomObject.colourList[nextTurn]))*priOffset());
         roomObject.board[tile[0]][tile[1]] = cell;
 
         io.to(plrRoomID).emit('board update', cell, tile[0],tile[1]);
       }else{
-        //I (the AI) should loose here. I should emit that loose update thing lol!
+        let plrNum = nextTurn;
+        roomObject.hasLost[plrNum] = true;
+      
+        clearInterval(interval);
+        numICanPlace = getRandNum();
+        for(let i = 0; i < numPlrs; i++){
+          let nextPotentialTurn =(nextTurn+1+i)%numPlrs; 
+          if (roomObject.hasLost[nextPotentialTurn] == false){
+            nextTurn = nextPotentialTurn;
+            break;
+          }
+        }
+        roomObject.currentTurn = nextTurn;
+        io.to(plrRoomID).emit("reclog", '0xABCDEF', roomObject.ogNames[plrNum] + " is out!");
+        if(roomObject.checkWinCondition()){
+          io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
 
+          //Maybe also pass the winning players name here??
+          io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
+        }else{
+          io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
+          if(roomObject.isAi[nextTurn]){
+            aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace);
+          }
+        }
       }
       z++;
     }else{
@@ -477,17 +525,18 @@ function aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace){
         }
       }
       roomObject.currentTurn = nextTurn;
+
       io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
 
+      //If the next player is an AI, need to take the turn.
+      if(roomObject.isAi[nextTurn]){
+        aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace);
+      }
     }
   }
-  const interval = setInterval(timedLoop, 500);
+  const interval = setInterval(timedLoop, 350);
   
 }
-
-///
-
-
 
 app.get('/', (req, res)=>{
 	res.sendFile(__dirname + '/index.html');
@@ -499,29 +548,19 @@ setInterval(()=>{
   }, 1000)
 
 io.on('connection', (socket) => {
-  //All the stuff below should just happen when a player enters a room.
   // ON PLAYER CONNECT =================================================
 	console.log('a user', socket.id,  'connnected');
   numOfPlayers++;
 
-  
-
   socket.on("requestToJoinRoom", (rmid)=>{
-    //this is a socket.emit because you're just sending this back to the guy...
     let roomobject = getRoomObj(rmid);
-    //Create unique room id.
-    //console.log(roomobject.numOfPlayers)
+
     if(roomobject == null){
       socket.emit("badRequest", "Room does not exist!");
-    //These shoudl be functions that update dynamically!
     }
-
     else if(!roomobject.canJoin){
       socket.emit("badRequest", "Game is already in progress!");
     }
-
-
-
     else if(roomobject.isFull()){
       socket.emit("badRequest", "Room is full!");
     }
@@ -531,31 +570,38 @@ io.on('connection', (socket) => {
   });
 
   socket.on("requestRoomID", ()=>{
-    //this is a socket.emit because you're just sending this back to the guy...
-    
     //Create unique room id.
     let roomID = generateNewRoom();
     socket.emit("sendRoomID", (roomID));
 
   });
 
-  socket.on("requestRoomIDAI", ()=>{
-    //this is a socket.emit because you're just sending this back to the guy...
-    
+  socket.on("requestRoomID2", ()=>{
     //Create unique room id.
     let roomID = generateNewRoom();
-    socket.emit("sendRoomIDAI", (roomID));
+    socket.emit("sendRoomID2", (roomID));
+
+  });
+
+  socket.on("requestRoomID3", ()=>{
+    //Create unique room id.
+    let roomID = generateNewRoom();
+    socket.emit("sendRoomID3", (roomID));
+
+  });
+
+  socket.on("requestRoomID4", ()=>{
+    //Create unique room id.
+    let roomID = generateNewRoom();
+    socket.emit("sendRoomID4", (roomID));
 
   });
 
   socket.on("connectToRoom", (plrRoomID, myName)=>{
-    //So here we have both the players roomID and their socket
-    //Need to get room object...
+    
     socket.join(plrRoomID);
 
     plrMap.set(socket.id, plrRoomID);
-
-
 
     let roomObject = getRoomObj(plrRoomID);
 
@@ -571,13 +617,9 @@ io.on('connection', (socket) => {
     if(myName == ""){
       tempName = testNames[Math.floor(Math.random()*testNames.length)];
     }else{tempName=myName;}
+
     roomObject.playerName.push(tempName);
     roomObject.ogNames.push(tempName);
-
-    //io.to(plrRoomID).emit("board init", roomObject.board);
-
-    
-
     roomObject.clrMap.set(socket.id, plrColour);
     roomObject.isAi.push(false);
     roomObject.hasLost.push(false);
@@ -586,25 +628,137 @@ io.on('connection', (socket) => {
 
     io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);
 
-
-    //Needs tp ja pahppen befre this one
     io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
 
     //===================================================================
   });
 
 
-  socket.on("connectToRoomAI", (plrRoomID, myName)=>{
-    //So here we have both the players roomID and their socket
-    //Need to get room object...
+  socket.on("connectToRoom2", (plrRoomID, myName)=>{
+
     socket.join(plrRoomID);
 
     plrMap.set(socket.id, plrRoomID);
 
+    let roomObject = getRoomObj(plrRoomID);
+    var plrColour = getRandomColor();
 
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push(socket.id);
+    roomObject.ogList.push(socket.id);
+    roomObject.colourList.push(plrColour);
+
+    var tempName = "";
+    if(myName == ""){
+      tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    }else{tempName=myName;}
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set(socket.id, plrColour);
+    roomObject.isAi.push(false);
+    roomObject.hasLost.push(false);
+
+
+    //Add AI =================================================================
+    var aiColour = getRandomColor();
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push("AI");
+    roomObject.ogList.push("AI");
+    roomObject.colourList.push(aiColour);
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set("AI", aiColour);
+    roomObject.isAi.push(true);
+    roomObject.hasLost.push(false);
+
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    // ===============================================================================
+
+    io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
+    io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);
+
+    // ================================================================================
+  });
+
+  socket.on("connectToRoom3", (plrRoomID, myName)=>{
+
+    socket.join(plrRoomID);
+    plrMap.set(socket.id, plrRoomID);
 
     let roomObject = getRoomObj(plrRoomID);
+    var plrColour = getRandomColor();
 
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push(socket.id);
+    roomObject.ogList.push(socket.id);
+    roomObject.colourList.push(plrColour);
+
+    var tempName = "";
+    if(myName == ""){
+      tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    }else{tempName=myName;}
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set(socket.id, plrColour);
+    roomObject.isAi.push(false);
+    roomObject.hasLost.push(false);
+
+
+    //Add AI =================================================================
+
+    var aiColour = getRandomColor();
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push("AI");
+    roomObject.ogList.push("AI");
+    roomObject.colourList.push(aiColour);
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set("AI", aiColour);
+    roomObject.isAi.push(true);
+    roomObject.hasLost.push(false);
+    
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    // ================================================================================================
+
+    //Add AI =================================================================
+
+    var aiColour = getRandomColor();
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push("AI2");
+    roomObject.ogList.push("AI2");
+    roomObject.colourList.push(aiColour);
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set("AI2", aiColour);
+    roomObject.isAi.push(true);
+    roomObject.hasLost.push(false);
+
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    // ================================================================================================
+
+    io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
+    io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);    
+
+    //===================================================================
+  });
+
+  socket.on("connectToRoom4", (plrRoomID, myName)=>{
+
+    socket.join(plrRoomID);
+    plrMap.set(socket.id, plrRoomID);
+
+    let roomObject = getRoomObj(plrRoomID);
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
 
@@ -619,50 +773,73 @@ io.on('connection', (socket) => {
     }else{tempName=myName;}
     roomObject.playerName.push(tempName);
     roomObject.ogNames.push(tempName);
-
-    //io.to(plrRoomID).emit("board init", roomObject.board);
-
-    
-
     roomObject.clrMap.set(socket.id, plrColour);
     roomObject.isAi.push(false);
     roomObject.hasLost.push(false);
 
 
-    //NOW ADD AN AI CHARACTER JUST 1 =================================================================
+    //Add AI =================================================================
 
+    var aiColour = getRandomColor();
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
-
-    var aiColour = getRandomColor();
     roomObject.playerList.push("AI");
     roomObject.ogList.push("AI");
     roomObject.colourList.push(aiColour);
-
-    var tempName = "";
     tempName = testNames[Math.floor(Math.random()*testNames.length)];
     roomObject.playerName.push(tempName);
     roomObject.ogNames.push(tempName);
-
-    //io.to(plrRoomID).emit("board init", roomObject.board);
-
-    
-
     roomObject.clrMap.set("AI", aiColour);
     roomObject.isAi.push(true);
-
     roomObject.hasLost.push(false);
+    
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    // ================================================================================================
+
+    //Add AI =================================================================
+
+    var aiColour = getRandomColor();
+
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push("AI2");
+    roomObject.ogList.push("AI2");
+    roomObject.colourList.push(aiColour);
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set("AI2", aiColour);
+    roomObject.isAi.push(true);
+    roomObject.hasLost.push(false);
+
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
+
+    // ================================================================================================
+
+    //Add AI =================================================================
+
+    var aiColour = getRandomColor();
+    
+    roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
+    roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
+    roomObject.playerList.push("AI3");
+    roomObject.ogList.push("AI3");
+    roomObject.colourList.push(aiColour);
+    tempName = testNames[Math.floor(Math.random()*testNames.length)];
+    roomObject.playerName.push(tempName);
+    roomObject.ogNames.push(tempName);
+    roomObject.clrMap.set("AI3", aiColour);
+    roomObject.isAi.push(true);
+    roomObject.hasLost.push(false);
+    
+    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
 
     // ================================================================================================
 
     io.to(plrRoomID).emit("init", roomObject.numOfPlayers, roomObject.playerList, roomObject.playerName, plrColour);
-
     io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName, roomObject.colourList);
-
-
-    //Needs tp ja pahppen befre this one
-    io.to(plrRoomID).emit("reclog", '0xffbf36', tempName + " connected!");
 
     //===================================================================
   });
@@ -706,19 +883,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on('start game', (plrRoomID) => {
-    /*
-      Let's start by just drawing each thing...
-    */
     let roomObject = getRoomObj(plrRoomID);
     roomObject.gameStarted = true;
 
     roomObject.setBoardColor();
 
-    if(false){//DISBLED TEMP FOR TESTroomObject.numOfPlayers == 1){
+    if(false){//DISBLED TEMP FOR TESTING roomObject.numOfPlayers == 1){
       socket.emit("badRequest", "Need more than 1 player!");
     }else{
       
-      //RESET BOARD IN CASE OF STARTING A NEW GAME
+      //Reset board when starting a new game.
       io.to(plrRoomID).emit("board init", roomObject.board);
       let n = roomObject.hasLost.length;
       for(let i = 0; i < n; i++)
@@ -726,47 +900,33 @@ io.on('connection', (socket) => {
 
       io.to(plrRoomID).emit('start game', roomObject.playerName);
       roomObject.canJoin = false;
-      //Now the game has started!!!!
-
-      //print colours
-      //for(let i = 0; i < roomObject.playerList.length; i++){
-      //  console.log(roomObject.playerName[i] + ": " + roomObject.getPlayerColour(roomObject.playerList[i]));
-      //}
-
-      //Update board with initial colours:
+      
       for(let i = 0; i < roomObject.playerList.length; i++){
         let clrToDraw = roomObject.getPlayerColour(roomObject.playerList[i]);
         let [x,y] = getStartCoord(i);
-        //console.log(x,y);
         roomObject.board[x][y]=clrToDraw;
         io.to(plrRoomID).emit('board update', clrToDraw, x,y);
         io.to(plrRoomID).emit('assign num', i, roomObject.playerList[i], clrToDraw);
 
+        //If this player is an AI, generate it's placed queue
         if(roomObject.isAi[i]){
-          //If it's an AI generate it's "placed" thing
           roomObject.placed[i] = new PriorityQueue();
           roomObject.placed[i].enqueue([x,y], (heuristic(x)*heuristic(y))*priOffset() );
         }
       }
-      //For now, the number a player is allowed to place is just 5. Going forward it will be random.
 
-      //Maybe just define your own distribution function.
       io.to(plrRoomID).emit('new turn', 0,roomObject.playerName[0],getRandNum());
       roomObject.currentTurn = 0;
     }
   });
 
   socket.on('turn update', (plrNum, plrRoomID, lost)=>{
-    //Should be the player after plrNum...
 
     let roomObject = getRoomObj(plrRoomID);
 
     if(roomObject == null){
       return;
     }
-
-
-    //console.log("Whose turn ended??" + plrNum)
 
     let numPlrs = roomObject.numPlayersAtStart;
 
@@ -777,12 +937,11 @@ io.on('connection', (socket) => {
     if(lost){
       roomObject.hasLost[plrNum] = true;
       io.to(plrRoomID).emit("reclog", '0xABCDEF', roomObject.ogNames[plrNum] + " is out!");
-      //Need to make sure the last player is declared the winner.......
     }
 
     let nextTurn = -1;
     var i = 0;
-    //This should
+    
     for(let i = 0; i < numPlrs; i++){
       let nextPotentialTurn =(plrNum+1+i)%numPlrs; 
       if (roomObject.hasLost[nextPotentialTurn] == false){
@@ -791,38 +950,22 @@ io.on('connection', (socket) => {
       }
     }
     roomObject.currentTurn = nextTurn;
-    //let nextTurn = (plrNum+1)%numPlrs;
-    //CHECK THE WIN CONDITION!!!!!!!!!! SHOULD BE A FUNCTION OF THE CLASS!!!!!!!!!!!!!!!!!!!!!
-
-    //console.log(roomObject.checkWinCondition());
-    //So something like
     
     if(roomObject.checkWinCondition()){
       io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
-
-      //Maybe also pass the winning players name here??
-      io.to(plrRoomID).emit('game over');
+      io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
     }else{
       var numICanPlace = getRandNum();
       io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
 
-
-      //Here we want to check if the player is a an AIIIIIIIIIIIIIIIIIIII
+      //If the next player is an AI, there will be no player to receive 'new turn' with their respective playerNum
+      //so we need to manually tell the AI to begin its turn.
       if(roomObject.isAi[nextTurn]){
         aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace)
-        
-        //Old poop!
       }
     }
-
-    
-
-    //io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
   })
   
-
-  
-
   socket.on('go to wait', (plrRoomID) =>{
     let roomObject = getRoomObj(plrRoomID);
     roomObject.canJoin = true;
@@ -831,63 +974,37 @@ io.on('connection', (socket) => {
 
 
   // PLAYER DISCONNECT =================================================
-  
-
 	socket.on('disconnect', () => {
       let plrRoomID = plrMap.get(socket.id);
       if(plrRoomID != null){
         let roomObject = getRoomObj(plrRoomID);
         let index = roomObject.playerList.indexOf(socket.id);
 
-
         if(!roomObject.gameStarted){
           roomObject.ogList.splice(index, 1);
           roomObject.ogNames.splice(index, 1);
         }
 
-
         let ogIndex = roomObject.ogList.indexOf(socket.id);
-        //Need to iterate through playerList to find the index associated w/ the player.
-        //roomObject.playerList
-        /*
-        let plrs=roomObject.playerList;
-        let n = plrs.length;
-        let ind = 0;
-        for(ind = 0; ind < n; ind++){
-          if(plrs[ind] == socket.id){
-            break;
-          }
-        }
-        */
-
         
         roomObject.hasLost[ogIndex] = true;
 
         socket.emit("disc");
         roomObject.numOfPlayers--;
 
-
-
-
         io.to(plrRoomID).emit("reclog", '0xfc5b35', roomObject.playerName[index] + " disconnected.");
-
         
         roomObject.playerList.splice(index, 1);
         roomObject.playerName.splice(index, 1);
         roomObject.colourList.splice(index, 1);
+        
         io.to(plrRoomID).emit("remove player", roomObject.playerList, roomObject.playerName, roomObject.colourList);
-
-        //I don't think we even should do this, I think it's sufficient to just remove it from the client and preserve the list order here.
-        //
-        //
 
         //Start the next turn when the active turn disconnects.
         if(roomObject.currentTurn == ogIndex){
-        
           let numPlrs = roomObject.numPlayersAtStart;
           let nextTurn = -1;
           var i = 0;
-          //This should
           for(let i = 0; i < numPlrs; i++){
             let nextPotentialTurn =(ogIndex+i)%numPlrs; 
             if (roomObject.hasLost[nextPotentialTurn] == false){
@@ -895,16 +1012,11 @@ io.on('connection', (socket) => {
               break;
             }
           }
-          //You hit once...
           roomObject.currentTurn = nextTurn;
           io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
         }
-        //let nextTurn = (plrNum+1)%numPlrs;
 
-      	//console.log('user', socket.id, 'disconnected');
-
-        //IF YOU'RE THE LAST FUCKING BRUH IN THE ROOM THEN THE FUCKING ROOM SHOULD BE 
-        //DELETED IF YOU FUCKING DISCONECT IT'S NOT FUCKING ROCKET SCIENCE
+        //Note: need to delete room in case player was last in the room.
       }
   	});
   // =======================================================================

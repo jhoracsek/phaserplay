@@ -162,6 +162,49 @@ body {
   outline: none;
 }
 
+.buttonContainer{
+    font-family: 'daydream';
+    background-color: rgb(131,209,107); 
+    border: none;
+    color: white;
+
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    border-radius: 6px; 
+    width: 100%;
+    overflow: hidden;
+}
+
+.buttonItem{
+    font-family: 'daydream';
+    background-color: rgb(131,209,107);
+    
+
+    border: none;
+    /*border-right: 2px solid black;*/
+    color: white;
+
+
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    height: 52px;
+
+
+    transition-duration: 0.4s;
+    cursor: pointer;
+    width: 100%;
+    transition-duration: 0.2s;
+}
+
+.buttonItem:hover{
+    background-color: rgb(84,158,59); 
+}
+
 .buttonStyle1{
     font-family: 'daydream';
     background-color: rgb(131,209,107); 
