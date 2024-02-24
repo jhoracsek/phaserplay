@@ -4,14 +4,14 @@ app.use(express.static("./"));
 const http = require('http');
 const https = require('https');
 const server = http.createServer(app);
-//const serverHttps = https.createServer(app);
 
 const { Server } = require("socket.io");
 const io = new Server(server);
 
 var numOfPlayers = 0;
 const plrMap = new Map();
-var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
+//var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
+var testNames = ["Jay", "Jeff", "Sam", "Max", "Ben", "Alex", "Luke", "Jack", "Nick", "Tom", "Tim", "Josh", "Matt", "Mike", "Dan", "Will", "Chris", "Ryan", "Eric", "Adam", "Joe", "Dave", "Steve", "Rob", "Pat", "Greg", "Sean", "Andy", "Evan", "Kyle", "Mark", "Tony", "Carl", "Phil", "Aaron", "Bryan", "Kevin", "Gary", "Todd", "Paul", "Don", "Scott", "Craig", "Jim", "Derek", "Neil", "Ross", "Dean", "Brett", "Brad", "Lee", "Terry", "Seth", "Jeff", "Bill", "Frank", "Larry", "Ron", "Rich", "Doug", "Glenn", "Justin", "Cory", "Russell", "Vince", "Shaun", "Jayson", "Davey", "Keith", "Billy", "Johnny", "Tommy", "Ray", "Ricky", "Donny", "Eddie", "Randy", "Mikey", "Jimmy", "Terry", "Marty", "Jamie", "Mickey", "Drew", "Joey", "Benny", "Kenny", "Richie", "Freddy", "Ronnie", "Tony", "Danny", "Willie", "Robbie", "Sammy", "Georgie", "Tommy", "Rusty", "Chuck", "Manny", "Jessie", "Bobby", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "Danny", "Rusty", "Chuck", "Tommy", "Manny", "Bobby", "Jessie", "Jimmy", "Ricky", "Benny", "Freddie", "Georgie", "Ronnie", "Joey", "Charlie", "CrabBoy42"]
 let allColours = ['0x48e2d0', '0x7fce71', '0xf6a342', '0xeb0083', '0xfc0ee9', '0x00a8ff' ];
 
 
@@ -921,7 +921,8 @@ io.on('connection', (socket) => {
 
     roomObject.setBoardColor();
 
-    if(false){//DISBLED TEMP FOR TESTING roomObject.numOfPlayers == 1){
+    //if(false){//DISBLED TEMP FOR TESTING roomObject.numOfPlayers == 1){
+    if(roomObject.numOfPlayers == 1){
       socket.emit("badRequest", "Need more than 1 player!");
     }else{
       
@@ -986,9 +987,6 @@ io.on('connection', (socket) => {
     
     if(roomObject.checkWinCondition()){
       io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
-      console.log('I am running...')
-
-      //For some reason this isn't ending the game???
       io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
     }else{
       var numICanPlace = getRandNum();
@@ -1019,14 +1017,6 @@ io.on('connection', (socket) => {
       roomObject.ogNames.push(roomObject.playerName[i]);
       roomObject.hasLost.push(false);
     }
-
-
-    //Need to also reset ogList and ogPlayers and has lost why not
-
-    //this.playerList = [];
-    //this.ogList = [];
-    //this.ogNames = [];
-    //this.playerName = [];
 
     io.to(plrRoomID).emit('go to wait');
   });
@@ -1073,10 +1063,9 @@ io.on('connection', (socket) => {
               break;
             }
           }
-          //I need to check the win condition here!!!!!!!!
+
           roomObject.currentTurn = nextTurn;
 
-          //ADDED CODE ====================
           var numICanPlace = getRandNum();
           if(roomObject.checkWinCondition()){
             io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
@@ -1087,7 +1076,6 @@ io.on('connection', (socket) => {
               aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace);
             }
           }
-        //====================================
         }
 
         //Note: need to delete room in case player was last in the room.

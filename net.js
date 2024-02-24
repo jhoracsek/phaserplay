@@ -30,7 +30,6 @@ socket.on('board update', (cell, i,j)=>{
     pixStore[i][j].updateColor(board[i][j]);
     numLeft--;
     if(gameScene.numText!=null){
-        console.log("HEREREREHERHEHREHEHE:" + gameScene.numText);
         gameScene.numText.setText(numLeft+"/"+numAllowedToPlace);
     }
 });
@@ -68,7 +67,6 @@ socket.on('sync players', (plrList, plrName, clrList)=> {
 });
 
 socket.on('recmsg', (clr, name, msg) => {
-    console.log('do i fire?')
         const element = document.getElementById("cww");
         let old = element.innerHTML;
         if (old == ""){
@@ -159,7 +157,6 @@ socket.on('sendRoomID4', (rmid) => {
 
 socket.on('badRequest', (msg) => {
     alert(msg);
-    //This is where I should display some sort of message
 });
 
 socket.on('start game', (ogNme)=>{
@@ -178,7 +175,6 @@ socket.on('assign num', (plrNum, plrSock, plrColor)=>{
 
 var gameOver = false;
 socket.on('tick', ()=>{
-    console.log('bgX:' + bgX + ' bgY:' + bgY);
     if(!gameOver){
         if (timerSeconds > -1) {
           if(gameScene.clock != null){
@@ -192,28 +188,21 @@ socket.on('tick', ()=>{
 });
 
 socket.on('game over', (winner, clr)=>{
-    console.log("Do we run client side?")
     gameScene.displayWinScreen(winner, clr)
     gameOver = true;
     gameover();
 })
 
 socket.on('go to wait', ()=>{
-    //We need to go back to the wait screen...
     gameScene.goToWait()
 });
 
-//This is where we handle someone getting a turn.
 socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
-    //YOU NEED TO DISPLAY SOM E STUFF HERE!!!!!!!!!!!
     let test =new Date().toLocaleString();
-    console.log(test)
-    //startCD();
     timerSeconds = MAXTIME;
     numAllowedToPlace = numToPlace;
-    //gameScene
     numLeft = numToPlace;
-    //We need to somehow wait here for gameScene to be init...
+
     if(gameScene == null){
         startGameForAll();
     }
@@ -223,7 +212,6 @@ socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
     //Update some graphics stuff
     if(gameScene.numText != null){
         gameScene.numText.setText(numToPlace+"/"+numToPlace);
-        console.log(playerColours[whoseTurn]);
         gameScene.numText.setColor(convertColorCode(playerColours[whoseTurn]))
 
         gameScene.nameTextRight.setText(ogNames[whoseTurn])

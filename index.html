@@ -342,8 +342,6 @@
             pix.on('pointerdown', (pointer)=>
             {
                 if(!gameOver && myTurn && checkAdj(this.x, this.y)){
-                    console.log(playerColor)
-
                     pix.setFillStyle(playerColor);
                     board[this.x][this.y] = playerColor;
                     socket.emit('board update', playerColor, this.x, this.y, roomID);
