@@ -35,8 +35,6 @@
                             <br><br>
                             <img src="images/numbers.gif">
                         </div>
-                        <!-- BIG INTERVAL TIMER HERE!!! -->
-                        
                     </div>
                 </div>
                 <div class="splashTopRight">
@@ -48,40 +46,10 @@
                             <hr>
                             Hi, and welcome to the PiKCEL Alpha!<br><br> A few things...
                             <ul style="margin:0px; padding-left:12px;">
-                              <li>The game is still in very early Alpha, so there may be many (potentially game-breaking) bugs. Please report them if you feel inclined.</li>
-                              <li>Any features, gameplay or UI changes you think would make a good addition are appreaciated! Obviously I reserve the right to disagree.</li>
+                              <li>The game is still in very early Alpha, so there may be many (potentially game breaking) bugs. Please report them if you feel inclined.</li>
+                              <li>Any features, gameplay or UI changes you think would make a good addition are appreciated! Obviously, I reserve the right to disagree.</li>
                               <li>If you're interested in contributing to the development (programming, testing) please send me an email.</li>
-                              <!--
-                              <li>Mobile support</li>
-                              <li>Reworked toolbar</li>
-                                  <ul style="margin:0px; padding-left:25px">
-                                    <li>Undo button</li>
-                                    <li>More colors</li>
-                                    <li>Left- and rightclick to select colors and draw</li>
-                                    <li>Experimental support for pressure touch input</li>
-                                    <li>Configurable hotkeys</li>
-                                  </ul>
-                              <li>Better player interactions/moderation</li>
-                                <ul style="margin:0px; padding-left:25px">
-                                    <li>Ability to kick and ban any player as a room owner</li>
-                                    <li>Votekick, Mute and Report naughty players</li>
-                                  </ul>
-                              <li>Invite your friends to public rooms</li>
-                              <li>More room settings</li>
-                                <ul style="margin:0px; padding-left:25px">
-                                    <li>Increased player count in custom rooms to 20</li>
-                                    <li>Set the amount of Words to choose from (1-5)</li>
-                                    <li>Set the amount of Hints or disable them completely</li>
-                                    <li>Word modes: Normal, Hidden and Combination</li>
-                                  </ul>
-                              <li>Updated a bunch of Languages</li>
-                                <ul style="margin:0px; padding-left:25px">
-                                    <li>Added lots of new words to English and German</li>
-                                    <li>Added Russian</li>
-                                    <li>Added Japanese</li>
-                                </ul>
-                              <li>A dozen new avatar options :)</li>
-                            -->
+                              
                             </ul>
                             <br>
                             That's all!<br>
@@ -95,7 +63,9 @@
                     <h2>About</h2>
                     <div class="splashMidBG" style="padding:10px;">PiKCEL.io is a free online competitive strategy game, currently in Alpha.<br>
 
-                    The game is a project I develop in my free time, and not intented to be monetized. If you find it fun and wish to contribute please consider!
+                    The game is a project I develop in my free time, and not intented to be monetized. If you find it fun and wish to contribute please consider!<br>
+                    <a href="https://www.buymeacoffee.com/pikcel"  target="_blank"><div class="buttonStyle3" style="position: relative; bottom: 10px; right:-144px; width:90px; "> ☕ Buy me a coffee </div></a>
+                    <br><br><a href="https://docs.google.com/forms/d/e/1FAIpQLSesaNAamk_tGPDRoL154Aa2-EpHf_yO04YeMVvepQO0Khxhlg/viewform?usp=pp_url" target="_blank"> Submit a bug!</a>  &nbsp&nbsp&nbsp&nbsp <a href = "mailto: pixelcellgame@gmail.com">Send me an email!</a>
                 </div>
                 </div>
                 <!------------------------------------------------>
@@ -197,6 +167,8 @@
 
     var splash = true;
 
+    let bgMod = 1024;
+
     const msgWin = document.getElementById('cww');
 
     var roomID = '-1-1-1-1-1';
@@ -239,8 +211,7 @@
                 if (box == playerNames.length-1){
                     last = true;
                 }
-                //Get the og index
-                //This is inefficent and stupid lol but it's clientside so I don't really care.
+                //This is inefficent.
                 this.addPlayerBox(box, first, last);
                 first = false;
             }
@@ -279,8 +250,6 @@
                 mask.dirty = true;
                 toBeMasked.setMask(mask);
                 this.playerBoxes.push(toBeMasked);
-                //console.log(playerColor)
-                //.setColor('#6b4ea2') OLD]
 
                 var pt = this.scene.add.text(Math.round(31+boxWidth/2), Math.round(height+boxHeight/2), playerNames[num]).setFontFamily('daydream').setFontSize(17).setColor(convertColorCode(ogColours[num])).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
                 pt.antialias = true;
@@ -327,8 +296,7 @@
 
 
     function checkAdj(x,y){
-        //playerColor
-        //Need to check if it's one of the two default colours first... What are these and what format?? 0x
+        //Need to check if it's one of the two default colours first.
         if(board[x][y] == '0xEFEFEF' || board[x][y] == '0xFFFFFF'){
             //Now we can draw, if we are adjacent to one of the playerColor tiles
             if(x > 0 && board[x-1][y] == playerColor)
@@ -365,7 +333,6 @@
 
         create(graphics, scene){
             this.graphics = graphics;
-            //var pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, board[this.x][this.y]);
             var pix = scene.add.rectangle(this.posX+this.size/2, this.posY+this.size/2, this.size, this.size, board[this.x][this.y]);
             this.pix = pix;
 
@@ -382,7 +349,6 @@
                     socket.emit('board update', playerColor, this.x, this.y, roomID);
                     numPlaced++;
                     if (numPlaced >= numAllowedToPlace){
-                        //This is where we emit the player turn update
                         socket.emit('turn update', playerNum, roomID, false);
                         numPlaced = 0;
                         myTurn = false;
@@ -402,9 +368,7 @@
                 if(color == '0xEFEFEF' || color == '0xFFFFFF'){
                     this.pix.setDepth(3);
                 }else{
-                    
                     this.pix.setDepth(1);
-                    //this.pix.postFX.addShine(1, .2, 5);
                 }
             }
         }
@@ -431,6 +395,9 @@
             this.players = players;
             this.size = 96*6;
 
+            /*
+                This was scraped...
+            */
             // 2 player should be 16x16
             // 3 player should be 24x24
             // 4 player should be 32x32
@@ -464,12 +431,9 @@
                 x+=1;
                 y=0;
             }
-            //const fx = pixelGraphics.postFX.addShine(1, .2, 5);
-            //May not even include these lines
+
             graphics.setBlendMode(Phaser.BlendModes.NORMAL);
-            // This is a good complementary colour but idk if it fits.
             // https://www.canva.com/colors/color-wheel/
-            // 85a24e           OLD:0xFFF000
             graphics.lineStyle(this.lineWidth,0x6b4ea2,2,1);
             for(let i = this.lineSep; i < this.size; i+=this.lineSep){
                 graphics.lineBetween(this.posX, this.posY + i, this.posX+this.size, this.posY+i);
@@ -488,7 +452,6 @@
 
     }
 
-    //https://css-tricks.com/moving-backgrounds/
     let container = document.querySelector("body");
     var bgX = 0;
     var bgY = 0;
@@ -497,8 +460,6 @@
     {
         constructor(){
             super('Game');
-
-            //this.create();
             gameScene = this;
             this.popUpGraphics = null;
             this.winScreen = null;
@@ -516,7 +477,6 @@
         create ()
         {
             gameScene = this;
-
 
             this.logo = this.add.image(100, 50, 'logo');
             this.logo.setDepth(10);
@@ -548,9 +508,6 @@
 
             shadows.fillStyle(0x000000, 0.17);
 
-            //-------------------------------------------------
-            //Right
-
             
             //TOP RIGHT====
             graphics.fillRoundedRect(startL, startT,250,273,6);
@@ -562,9 +519,7 @@
             shadows.fillRoundedRect(startL+shadowOffset, startT+303+shadowOffset,250,273,6);
             //================
 
-            //-----------------------------------------------
             //Top
-
             graphics.setDepth(4);
             var topBoxStart = 2*smallBoxStart + 576 + 2*250;
             
@@ -603,7 +558,6 @@
                 targets: shine,
                 x: 960,
                 y: 960-75,
-                //yoyo:true,
                 repeat:-1,
                 repeatDelay: 2000,
                 duration:800,
@@ -612,8 +566,6 @@
             
             // ========================================================
 
-            
-            //Need to draw text overlay for number of spaces left (add a little bop anitmation...) HERE IS WHAT I'M WORKING ON...
             this.clock = this.add.text(1140, 198, timerSeconds).setFontFamily('daydream').setFontSize(37).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
             this.clock.setDepth(101);
             this.numText = this.add.text(1044, 309, numAllowedToPlace+"/"+numAllowedToPlace).setFontFamily('daydream').setFontSize(52).setColor(convertColorCode(playerColours[whoseTurn])).setStroke('#6b4ea2', 7).setOrigin(0.5, 0.5);
@@ -631,8 +583,6 @@
                 duration: 1000,
                 scaleX: 3.75,
                 scaleY: 3.75,
-
-                //Sine.easeInOut
                 ease: 'Phaser.Math.Easing.Linear',
                 repeat: -1,
                 yoyo: true
@@ -641,61 +591,33 @@
         }
 
         displayWinScreen(winnerName, clr){
-            //Should write the player name and shit like that... Play again... That's it I think, player name and play again...
-            //Make a new graphics object..
             if(this.winScreen != null){
                 this.winScreen.destroy();
             }
+            if(this.winText != null){
+                this.winText.destroy();
+            }
             this.winScreen = this.add.graphics();
-            //I can basically use the popup template..........
             this.winScreen.fillStyle(0xFFFFFF,1);
-
             this.winScreen.lineStyle(1,0x6b4ea2, 1);
-            //Poop!
             this.winScreen.setDepth(200);
-
-            //this.winText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
-            //Add a stroke here!
             this.winText = this.add.text(608, 360, winnerName + " has won!").setFontFamily('daydream').setFontSize(37).setColor(convertColorCode(clr)).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 7);
-            //this.winText = this.add.text(608, 360, winnerName + " has won!").setFontFamily('daydream').setFontSize(27).setColor(convertColorCode(clr)).setOrigin(0.5, 0.5).setStroke('#6b4ea2', 3);
             this.winText.setDepth(201);
-
             let pWidth = 450;
             let pHeight = 200;
-
-            //Fuck the shaow for now
             this.winScreen.fillStyle(0x000000,0.17);
             this.winScreen.fillRoundedRect(-pWidth/2+shadowOffset,-pHeight/2+shadowOffset,pWidth,pHeight,6);
-
-
             this.winScreen.fillStyle(0xFFFFFF,1);
             this.winScreen.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
             this.winScreen.strokeRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
-
-            /*
-            if(this.nameText == null){
-                this.nameText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
-                this.nameText.setDepth(101);
-            }else{
-                this.nameText.setText(plrName+"\'s turn!")
-                this.nameText.alpha = 1;
-            }
-            */
-
             this.winScreen.x = 600;
             this.winScreen.y = 400;
 
-
-            
-            //let nt = this.nameText;
-
             const chain = this.tweens.chain({
-                //Also a target should be the text...
                 targets: this.winScreen,
                 tweens:[
                 {
                     duration: 20,
-                    //scale: 1.025,
                     scale: 1.1,
 
                 },
@@ -707,33 +629,9 @@
                     duration: 750,
                     alpha:1
                 },
-
-                //{
-                //    duration: 300,
-                //    alpha: 0
-                //}
-
                 ]
 
             })
-            /*
-            const chain1 = this.tweens.chain({
-                //Also a target should be the text...
-                targets: this.nameText,
-                tweens:[
-                {
-                    duration: 790,
-                    alpha:1
-                },
-
-                {
-                    duration: 300,
-                    alpha: 0
-                }
-
-                ]
-
-            });*/
         }
 
         removeWinScreen(){
@@ -754,22 +652,14 @@
             this.popUp.setDepth(100);
             this.popUp.fillStyle(0xFFFFFF);
             this.popUp.lineStyle(1,0x6b4ea2, 1);
-            //What is canvas size? 1200 x 800, So mid is 600 x 400
             let pWidth = 450;
             let pHeight = 100;
-
-            //Fuck the shaow for now
             this.popUp.fillStyle(0x000000,0.17);
             this.popUp.fillRoundedRect(-pWidth/2+shadowOffset,-pHeight/2+shadowOffset,pWidth,pHeight,6);
-
             this.popUp.fillStyle(0xFFFFFF,1);
             this.popUp.fillRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
-
             this.popUp.strokeRoundedRect(-pWidth/2,-pHeight/2,pWidth,pHeight,6);
 
-
-            //WHERE IS THE FUCKING TEC
-            //Make it the players colour
             if(this.nameText == null){
                 this.nameText = this.add.text(608, 400, plrName+"\'s turn!").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
                 this.nameText.setDepth(101);
@@ -783,12 +673,10 @@
             let nt = this.nameText;
 
             const chain = this.tweens.chain({
-                //Also a target should be the text...
                 targets: this.popUp,
                 tweens:[
                 {
                     duration: 20,
-                    //scale: 1.025,
                     scale: 1.1,
 
                 },
@@ -805,13 +693,11 @@
                     duration: 300,
                     alpha: 0
                 }
-
                 ]
-
             })
-            //For text (doesn't really like two this LOL)
+
             const chain1 = this.tweens.chain({
-                //Also a target should be the text...
+
                 targets: this.nameText,
                 tweens:[
                 {
@@ -823,22 +709,23 @@
                     duration: 300,
                     alpha: 0
                 }
-
                 ]
-
             })
 
         }
 
         update(){
-            //This seriously might be a problem......... Need to fix this..... ASAP THIS IS A BIG PRIORITY
-            //IT ISN'T FIXED YET PLEASE FIX IT SOON IT WON'T BE HARD!!!            
             bgX += 0.5;
             bgY -= 0.5;
+            bgX %= bgMod;
+            bgY %= bgMod;
             container.style.backgroundPositionX = bgX + "px";
             container.style.backgroundPositionY = bgY + "px";
         }
         goToWait(){
+            if(this.winScreen != null){
+                this.winScreen.destroy();
+            }
             numPlaced = 0;
             this.scene.switch(menuScene);
             waitRoomDisplay();
@@ -869,18 +756,11 @@
             this.logo.x = 600;
             this.logo.y = 120;
 
-            
-
-
-            //Logo animation
             this.tweens.add({
-
             targets: this.logo,
             duration: 1000,
             scaleX: 3.75,
             scaleY: 3.75,
-
-            //Sine.easeInOut
             ease: 'Phaser.Math.Easing.Linear',
             repeat: -1,
             yoyo: true
@@ -890,14 +770,15 @@
 
         update(){
             frame += 1;
-            //Yeah eventually this is gonna overflow but idc LOL!.
             bgX += 0.5;
             bgY -= 0.5;
+
+            bgX %= bgMod;
+            bgY %= bgMod;
             container.style.backgroundPositionX = bgX + "px";
             container.style.backgroundPositionY = bgY + "px";
 
             if(frame % 60 == 0){
-                //Avoid overflowidk;
                 frame = 0;
                 this.waitingUpdate();
             }
@@ -922,33 +803,12 @@
         loadWaiting(){
 
             const menuGraphics = this.add.graphics();
-
-
-            //CHANGE THE COLOUR!!!!!!!
             menuGraphics.fillStyle(0xFFFFFF);
-            
             menuGraphics.fillRoundedRect(-308/2,-466/2,308,466,6); //Draw this at the center of menugraphics for scaling.
-            //Draw other menu items here ====================================
             menuGraphics.fillStyle(0x000000,0.1);
             menuGraphics.fillRoundedRect(-308/2+16, -466/2+73, 276, 252, 6)
-            
-
-            //Add the button...
-
-
-            
-            //===============================================================
-            //console.log('I should print after am I called??');
-            //Draw text here ================================================
             this.waitingText = this.add.text(608, 266, "Waiting").setFontFamily('daydream').setFontSize(27).setColor('#000000').setOrigin(0.5, 0.5)
-            //this.add.text(608, 581, "Server ID: 0000").setFontFamily('daydream').setFontSize(22).setColor('#000000').setOrigin(0.5, 0.5)
-            
-
-            //Ugly hack
             const wt = this.waitingText;
-            //=============================================================
-
-
             menuGraphics.x = 600;
             menuGraphics.y = 460;
 
@@ -972,7 +832,6 @@
         }
 
         goToGame(){
-            console.log("Am I at least called first?")
             this.scene.switch(gameScene);
         }
     }

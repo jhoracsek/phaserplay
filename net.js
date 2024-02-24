@@ -178,6 +178,7 @@ socket.on('assign num', (plrNum, plrSock, plrColor)=>{
 
 var gameOver = false;
 socket.on('tick', ()=>{
+    console.log('bgX:' + bgX + ' bgY:' + bgY);
     if(!gameOver){
         if (timerSeconds > -1) {
           if(gameScene.clock != null){
@@ -191,6 +192,7 @@ socket.on('tick', ()=>{
 });
 
 socket.on('game over', (winner, clr)=>{
+    console.log("Do we run client side?")
     gameScene.displayWinScreen(winner, clr)
     gameOver = true;
     gameover();
@@ -207,7 +209,7 @@ socket.on('new turn', (plrNum, plrNam, numToPlace)=>{
     let test =new Date().toLocaleString();
     console.log(test)
     //startCD();
-    timerSeconds = 20;
+    timerSeconds = MAXTIME;
     numAllowedToPlace = numToPlace;
     //gameScene
     numLeft = numToPlace;

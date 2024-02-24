@@ -5,6 +5,8 @@
 		#FFFFFF
 */
 function convertColorCode(color){
+	if(color == null)
+		return null;
 	return '#' + color.slice(2,8);
 }
 
@@ -22,11 +24,12 @@ function getRandomColor() {
 	return color;
 }
 
-var timerSeconds = 20;
+let MAXTIME = 15;
+var timerSeconds = MAXTIME;
 let interval;
 function startCD(){
 	//Add like one extra second of buffer...
-	timerSeconds = 20;
+	timerSeconds = MAXTIME;
 	clearInterval(interval);
 	interval = setInterval(() => {
 	    if (timerSeconds > -1) {

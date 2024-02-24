@@ -12,6 +12,23 @@ const io = new Server(server);
 var numOfPlayers = 0;
 const plrMap = new Map();
 var testNames = ["Dave", "Steve", "Ted", "Jay", "Danny", "xCoolGuy", "Poopy Boy", "Stoopy Poopy", "SloopyPooButt", "Ronnie", "Donnie", "Scone", "Drone", "Troned", "Spooniemo"];
+let allColours = ['0x48e2d0', '0x7fce71', '0xf6a342', '0xeb0083', '0xfc0ee9', '0x00a8ff' ];
+
+
+/*
+  Here we store all the custom "maps". 
+  The function will return the locations for a random map.
+  One day, I would love user created maps.
+*/
+let maps = [ 
+
+[],
+[ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13] ],
+[ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13], [7,7],[7,8],[8,7],[8,8] ],
+[ [0,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7], [8,8],[9,8],[10,8],[11,8],[12,8],[13,8],[15,8]  ]
+
+];
+
 
 //This seems sufficient, I doubt there would ever be larger than 10067 concurrent servers...
 var rooms = new Array(10067);
@@ -58,7 +75,7 @@ class PriorityQueue {
 }
 
 function priOffset(){
-  return 0.5 + Math.random() * 0.5;
+  return 0.9 + Math.random() * 0.1;
   //return 1;
 }
 
@@ -101,6 +118,20 @@ class Room{
 
   }
 
+  getColour(){
+    //Make sure it's not a duplicate.
+    //allColours
+    let n = allColours.length;
+
+    for(let i = 0; i < 20; i++){
+      let rand = Math.floor(Math.random() * n);  
+      if(!(this.colourList.includes(allColours[rand])))
+        return allColours[rand];
+    }
+    
+    return getRandomColor();
+  }
+
   isFull(){
     if(this.numOfPlayers >= 4)
       return true;
@@ -124,30 +155,14 @@ class Room{
   }
 
   getWinner(){
-    let n = this.hasLost.length;
+    let n = this.ogNames.length;
+
     for(let i = 0; i < n; i++){
       if(!this.hasLost[i])
-        return [this.playerName[i], this.colourList[i]];
+        return [this.ogNames[i], this.clrMap.get(this.ogList[i])];
     }
-    return null;
+    return ["Error", 0xFF0000];
   }
-
-  /*
-    Here we store all the custom "maps". 
-    The function will return the locations for a random map.
-    One day, I would love user created maps.
-  */
-  getMap(){
-    //MAP 1
-    let map1 = [ [] ]
-
-    //MAP 2
-    let map2 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13] ];
-    let map3 = [ [2,1],[1,2], [13,1],[14,2],  [1,13],[2,14],  [13,14],[14,13], [7,7],[7,8],[8,7],[8,8] ];
-    let map4 = [ [0,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,7], [8,8],[9,8],[10,8],[11,8],[12,8],[13,8],[15,8]  ];
-    return map4;
-  }
-
 
   setBoardColor(){
     for(let i = 0; i < 16; i++){
@@ -160,7 +175,9 @@ class Room{
       }
     }
     //Now apply the map...
-    let map = this.getMap();
+    let n1 = maps.length;
+    let rand = Math.floor(Math.random() * n1); 
+    let map = maps[rand]; 
     let n = map.length;
     for(let i = 0; i < n; i++)
       this.board[map[i][0]][map[i][1]] = '0xFF0000';
@@ -272,30 +289,30 @@ function adjHeur(gameBoard, x,y,clr){
   //clr is my color. So if you see a different color that's good.
   var adj = 0;
   if (x > 0){
-    if(gameBoard[x-1][y] != '0xEFEFEF' && gameBoard[x-1][y] != '0xFFFFFF' && gameBoard[x-1][y] != '0xFF0000' && gameBoard[x-1][y] != clr)
+    if(gameBoard[x-1][y] != '0xEFEFEF' && gameBoard[x-1][y] != '0xFFFFFF' &&  gameBoard[x-1][y] != clr)
       adj++;
   }
   if(x < 15){
-    if(gameBoard[x+1][y] != '0xEFEFEF' && gameBoard[x+1][y] != '0xFFFFFF' && gameBoard[x+1][y] != '0xFF0000'&& gameBoard[x+1][y] != clr)
+    if(gameBoard[x+1][y] != '0xEFEFEF' && gameBoard[x+1][y] != '0xFFFFFF' &&  gameBoard[x+1][y] != clr)
       adj++; 
   }
   if(y > 0){
-    if(gameBoard[x][y-1] != '0xEFEFEF' && gameBoard[x][y-1] != '0xFFFFFF' && gameBoard[x][y-1] != '0xFF0000'&& gameBoard[x][y-1] != clr)
+    if(gameBoard[x][y-1] != '0xEFEFEF' && gameBoard[x][y-1] != '0xFFFFFF' &&  gameBoard[x][y-1] != clr)
       adj++; 
   }
 
   if(y < 15){
-    if(gameBoard[x][y+1] != '0xEFEFEF' && gameBoard[x][y+1] != '0xFFFFFF' && gameBoard[x][y+1] != '0xFF0000'&& gameBoard[x][y+1] != clr)
+    if(gameBoard[x][y+1] != '0xEFEFEF' && gameBoard[x][y+1] != '0xFFFFFF' &&  gameBoard[x][y+1] != clr)
       adj++; 
   }
 
   switch(adj){
     case 1:
-      return 4;
-    case 2:
       return 3;
+    case 2:
+      return 4;
     case 3:
-      return 2;
+      return 5;
     default:
       return 0;
   }
@@ -503,6 +520,7 @@ function aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace){
           io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
 
           //Maybe also pass the winning players name here??
+
           io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
         }else{
           io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
@@ -605,10 +623,13 @@ io.on('connection', (socket) => {
 
     let roomObject = getRoomObj(plrRoomID);
 
+    if(roomObject == null)
+      return;
+
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
 
-    let plrColour = getRandomColor();
+    let plrColour = roomObject.getColour();
     roomObject.playerList.push(socket.id);
     roomObject.ogList.push(socket.id);
     roomObject.colourList.push(plrColour);
@@ -641,7 +662,9 @@ io.on('connection', (socket) => {
     plrMap.set(socket.id, plrRoomID);
 
     let roomObject = getRoomObj(plrRoomID);
-    var plrColour = getRandomColor();
+    if(roomObject == null)
+      return;
+    var plrColour = roomObject.getColour();
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
@@ -661,7 +684,7 @@ io.on('connection', (socket) => {
 
 
     //Add AI =================================================================
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
     roomObject.playerList.push("AI");
@@ -690,7 +713,9 @@ io.on('connection', (socket) => {
     plrMap.set(socket.id, plrRoomID);
 
     let roomObject = getRoomObj(plrRoomID);
-    var plrColour = getRandomColor();
+    if(roomObject == null)
+      return;
+    var plrColour = roomObject.getColour();
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
@@ -711,7 +736,7 @@ io.on('connection', (socket) => {
 
     //Add AI =================================================================
 
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
     roomObject.playerList.push("AI");
@@ -730,7 +755,7 @@ io.on('connection', (socket) => {
 
     //Add AI =================================================================
 
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
     roomObject.playerList.push("AI2");
@@ -759,10 +784,12 @@ io.on('connection', (socket) => {
     plrMap.set(socket.id, plrRoomID);
 
     let roomObject = getRoomObj(plrRoomID);
+    if(roomObject == null)
+      return;
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
 
-    var plrColour = getRandomColor();
+    var plrColour = roomObject.getColour();
     roomObject.playerList.push(socket.id);
     roomObject.ogList.push(socket.id);
     roomObject.colourList.push(plrColour);
@@ -780,7 +807,7 @@ io.on('connection', (socket) => {
 
     //Add AI =================================================================
 
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
@@ -800,7 +827,7 @@ io.on('connection', (socket) => {
 
     //Add AI =================================================================
 
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
 
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
@@ -820,7 +847,7 @@ io.on('connection', (socket) => {
 
     //Add AI =================================================================
 
-    var aiColour = getRandomColor();
+    var aiColour = roomObject.getColour();
     
     roomObject.numOfPlayers = roomObject.numOfPlayers + 1;
     roomObject.numPlayersAtStart = roomObject.numPlayersAtStart + 1;
@@ -853,7 +880,8 @@ io.on('connection', (socket) => {
   */
   socket.on("name change", (name,plrRoomID)=>{
       let roomObject = getRoomObj(plrRoomID);
-
+      if(roomObject == null)
+        return;
       let index = roomObject.playerList.indexOf(socket.id);
       roomObject.playerName[index] = name;
       io.to(plrRoomID).emit("sync players", roomObject.playerList, roomObject.playerName)
@@ -862,21 +890,24 @@ io.on('connection', (socket) => {
 
   socket.on("reset", (plrRoomID)=>{
     let roomObject = getRoomObj(plrRoomID);
-
+    if(roomObject == null)
+      return;
     setBoardColor();
     io.to(plrRoomID).emit("board reset", roomObject.board);
   });
 
   socket.on("sendmsg", (msg, clr,plrRoomID)=>{
     let roomObject = getRoomObj(plrRoomID);
-
+    if(roomObject == null)
+      return;
     let index = roomObject.playerList.indexOf(socket.id);
     io.to(plrRoomID).emit("recmsg", clr, roomObject.playerName[index], msg);
   });
 
   socket.on('board update', (cell, i, j,plrRoomID) => {
       let roomObject = getRoomObj(plrRoomID);
-
+      if(roomObject == null)
+        return;
       roomObject.board[i][j] = cell;
       io.to(plrRoomID).emit('board update', cell, i,j);
 
@@ -884,6 +915,8 @@ io.on('connection', (socket) => {
 
   socket.on('start game', (plrRoomID) => {
     let roomObject = getRoomObj(plrRoomID);
+    if(roomObject == null)
+      return;
     roomObject.gameStarted = true;
 
     roomObject.setBoardColor();
@@ -953,6 +986,9 @@ io.on('connection', (socket) => {
     
     if(roomObject.checkWinCondition()){
       io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
+      console.log('I am running...')
+
+      //For some reason this isn't ending the game???
       io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
     }else{
       var numICanPlace = getRandNum();
@@ -968,7 +1004,30 @@ io.on('connection', (socket) => {
   
   socket.on('go to wait', (plrRoomID) =>{
     let roomObject = getRoomObj(plrRoomID);
+    if(roomObject == null)
+      return;
     roomObject.canJoin = true;
+    roomObject.ogList = [];
+    roomObject.ogNames = [];
+    roomObject.hasLost = [];
+
+    let n = roomObject.playerList.length;
+    roomObject.numPlayersAtStart = n;
+
+    for(let i = 0; i < n; i++){
+      roomObject.ogList.push(roomObject.playerList[i]);
+      roomObject.ogNames.push(roomObject.playerName[i]);
+      roomObject.hasLost.push(false);
+    }
+
+
+    //Need to also reset ogList and ogPlayers and has lost why not
+
+    //this.playerList = [];
+    //this.ogList = [];
+    //this.ogNames = [];
+    //this.playerName = [];
+
     io.to(plrRoomID).emit('go to wait');
   });
 
@@ -978,6 +1037,8 @@ io.on('connection', (socket) => {
       let plrRoomID = plrMap.get(socket.id);
       if(plrRoomID != null){
         let roomObject = getRoomObj(plrRoomID);
+        if(roomObject == null)
+          return;
         let index = roomObject.playerList.indexOf(socket.id);
 
         if(!roomObject.gameStarted){
@@ -1012,8 +1073,21 @@ io.on('connection', (socket) => {
               break;
             }
           }
+          //I need to check the win condition here!!!!!!!!
           roomObject.currentTurn = nextTurn;
-          io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], getRandNum());
+
+          //ADDED CODE ====================
+          var numICanPlace = getRandNum();
+          if(roomObject.checkWinCondition()){
+            io.to(plrRoomID).emit("reclog", '0x00EE00', roomObject.ogNames[nextTurn] + " is the winner!");
+            io.to(plrRoomID).emit('game over', roomObject.getWinner()[0], roomObject.getWinner()[1]);
+          }else{
+            io.to(plrRoomID).emit('new turn', nextTurn,roomObject.playerName[nextTurn], numICanPlace);
+            if(roomObject.isAi[nextTurn]){
+              aiMove(roomObject, plrRoomID, nextTurn, numPlrs, numICanPlace);
+            }
+          }
+        //====================================
         }
 
         //Note: need to delete room in case player was last in the room.

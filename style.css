@@ -247,6 +247,26 @@ body {
     background-color: #267bd0;
 }
 
+.buttonStyle3{
+    font-family: 'daydream';
+    background-color: #FFDD00; 
+    border: none;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    padding:  5px;
+    font-size: 11px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 100%;
+    transition-duration: 0.2s;
+}
+.buttonStyle3:hover{
+    background-color: #DDCC00;
+}
+
 
 .chatWindow{
     position: absolute;
